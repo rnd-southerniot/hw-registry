@@ -95,7 +95,10 @@ repos:
     hooks:
       - id: validate-slugs
         name: validate-slugs
-        entry: python -m tools.validate slug-equals-path
+        # uv run resolves the project venv from pyproject.toml without
+        # requiring the caller to have it activated. Plain `python` would
+        # fail under `git commit` invoked from a fresh shell.
+        entry: uv run --no-sync python -m tools.validate slug-equals-path
         language: system
         pass_filenames: false
         files: ^library/.*\.yaml$
