@@ -8,7 +8,7 @@ from .errors import (
     UnresolvedComponentRef,
 )
 from .graph import build_graph
-from .loader import ComponentPlacement, System, load_system
+from .loader import ComponentPlacement, System, load_system, load_system_from_assignments
 from .rules import ALL_RULES, run_all
 from .sarif import to_sarif
 
@@ -23,6 +23,7 @@ __all__ = [
     "UnresolvedComponentRef",
     "build_graph",
     "load_system",
+    "load_system_from_assignments",
     "run_all",
     "to_sarif",
 ]

@@ -117,6 +117,62 @@ def load_system(yaml_path: Path, bundle_db: Path = DEFAULT_BUNDLE) -> System:
     )
 
 
+def load_system_from_assignments(
+    board_id: str,
+    assignments: list[dict[str, Any]],
+    bundle_db: Path = DEFAULT_BUNDLE,
+) -> System:
+    """Build a ``System`` from in-memory assignment dicts (no YAML on disk).
+
+    *assignments* is a list of ``{ref, instance, pins: {signal: gpio}}``
+    dicts — the same shape as ``system.components`` in the YAML form.
+    Used by the MCP server's ``hwlib_check_pin_conflicts`` tool, which
+    receives assignments from the agent rather than from a file.
+    """
+    if not bundle_db.exists():
+        raise BundleNotBuilt(
+            f"bundle SQLite not found at {bundle_db}. "
+            "Run `make bundle` or `python -m tools.builder --out dist/` first."
+        )
+
+    needed_ids: set[str] = {board_id}
+    for entry in assignments:
+        if not isinstance(entry, dict):
+            raise SystemYamlError("each assignment entry must be a dict")
+        ref = entry.get("ref")
+        if not isinstance(ref, str):
+            raise SystemYamlError("each assignment needs a string 'ref'")
+        needed_ids.add(ref)
+
+    records = _query_records(bundle_db, needed_ids, yaml_path=Path("<in-memory>"))
+
+    placements: list[ComponentPlacement] = []
+    for idx, entry in enumerate(assignments):
+        ref = entry["ref"]
+        instance = entry.get("instance") or f"u{idx + 1}"
+        if not isinstance(instance, str):
+            raise SystemYamlError(f"assignment[{idx}].instance must be a string")
+        pins = entry.get("pins") or {}
+        if not isinstance(pins, dict):
+            raise SystemYamlError(f"assignment[{idx}].pins must be a mapping")
+        pins_norm: dict[str, str] = {str(k): str(v) for k, v in pins.items()}
+        placements.append(
+            ComponentPlacement(
+                ref=ref,
+                instance=instance,
+                pins=pins_norm,
+                resolved=records[ref],
+            )
+        )
+
+    return System(
+        yaml_path=Path("<in-memory>"),
+        board_id=board_id,
+        board=records[board_id],
+        components=placements,
+    )
+
+
 def _query_records(
     bundle_db: Path,
     needed_ids: set[str],

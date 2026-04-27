@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hwlib-mcp"
+version = "0.1.0"
+description = "MCP server exposing the hw-registry component bundle to AI coding agents."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+authors = [
+    { name = "Southern IoT Limited", email = "rnd@southerniot.net" },
+]
+keywords = ["mcp", "fastmcp", "embedded", "hardware", "agent"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Embedded Systems",
+]
+
+dependencies = [
+    "fastmcp>=2.0",
+    # The bundle is read directly from SQLite at HWLIB_DATA_DIR. We rely
+    # on stdlib's sqlite3 (no extra dep). hwlib-data wheel arrives in
+    # Prompt 10 with the canonical bundle bundled inside it.
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio",
+]
+
+[project.scripts]
+hwlib-mcp = "hwlib_mcp.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hwlib_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra --strict-markers"
+filterwarnings = [
+    # Bundle build during the conftest fixture fires the RAK3172 soft-fallback
+    # warnings (8× per build). They are intentional CI surface for the root
+    # repo's tests; here they're test noise.
+    "ignore::tools.builder.errors.AltFunctionShorthandWarning",
+]

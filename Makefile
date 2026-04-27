@@ -36,6 +36,15 @@ bundle:  ## Build deterministic bundle into dist/
 conflicts:  ## Run pin-conflict checker on the lorawan-node fixture
 	hwlib-check-conflicts tests/fixtures/system_examples/lorawan-node.yaml
 
+mcp-install:  ## Install hwlib-mcp editable into the venv
+	$(UV) pip install -e packages/hwlib-mcp
+
+mcp-run:  ## Run hwlib-mcp pointing at the local dist/ bundle
+	HWLIB_DATA_DIR=$(PWD)/dist hwlib-mcp
+
+mcp-test:  ## Run hwlib-mcp test suite
+	cd packages/hwlib-mcp && pytest -q
+
 test:  ## Run pytest
 	$(PYTHON) -m pytest -q
 
