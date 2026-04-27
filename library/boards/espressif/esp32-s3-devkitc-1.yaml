@@ -1,0 +1,338 @@
+# yaml-language-server: $schema=../../../schemas/board.schema.json
+# SPDX-License-Identifier: CC-BY-4.0
+apiVersion: hwreg/v1
+kind: board
+id: boards/espressif/esp32-s3-devkitc-1
+revision: 1.1.0
+summary: "ESP32-S3-WROOM-1, 8MB flash, 8MB octal PSRAM, dual USB-C"
+description: >
+  Espressif's reference development board for the ESP32-S3-WROOM-1
+  N8R8 module. Two USB-C connectors — one wired to the on-module
+  native USB (GPIO19/GPIO20), one through a CP210x UART bridge.
+  Two 22-pin headers (J1, J3) expose the GPIOs that the WROOM-1
+  N8R8 variant brings out (GPIO0–GPIO21 plus GPIO38–GPIO48; GPIO33–
+  GPIO37 are reserved internally for the octal PSRAM and not
+  available externally).
+tags: [esp32-s3, wifi, ble, usb-otg, lx7, dev-board]
+vendor: espressif
+manufacturer_part_number: ESP32-S3-DevKitC-1-N8R8
+tested:
+  status: production-tested
+  by: rnd@southerniot.net
+  date: 2026-02-14
+  evidence: "Used as primary bring-up board in 2+ years of in-house projects."
+lifecycle: stable
+code_owner: "@rnd-southerniot/boards"
+inherits_from:
+  - modules/espressif/esp32-s3-wroom-1@1.0.0
+peripherals:
+  uart: 3
+  i2c: 2
+  spi: 4
+  adc: 2
+  pwm_channels: 8
+  usb: 1
+  i2s: 2
+  rmt: 8
+  touch: 14
+electrical:
+  vcc:
+    nominal_v: 5.0
+    min_v: 4.0
+    max_v: 5.5
+    source: usb-c
+  logic:
+    voltage_v: 3.3
+    family: cmos_3v3
+    five_v_tolerant: false
+  power_budget_mA: 500
+discovery:
+  usb:
+    - vid: "303A"
+      pid: "1001"
+      description: "ESP32-S3 native USB"
+    - vid: "10C4"
+      pid: "EA60"
+      description: "CP210x bridge to UART"
+strapping_pins: [GPIO0, GPIO3, GPIO45, GPIO46]
+reserved_pins: [GPIO19, GPIO20]
+pins:
+  - id: GPIO0
+    aliases: [BOOT]
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+  - id: GPIO1
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc1, channel: 0 }
+      - { function: touch, peripheral: touch1 }
+  - id: GPIO2
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc1, channel: 1 }
+      - { function: touch, peripheral: touch2 }
+  - id: GPIO3
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc1, channel: 2 }
+  - id: GPIO4
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc1, channel: 3 }
+      - { function: touch, peripheral: touch4 }
+  - id: GPIO5
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc1, channel: 4 }
+      - { function: touch, peripheral: touch5 }
+  - id: GPIO6
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc1, channel: 5 }
+      - { function: touch, peripheral: touch6 }
+  - id: GPIO7
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc1, channel: 6 }
+      - { function: touch, peripheral: touch7 }
+  - id: GPIO8
+    aliases: [SDA]
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: i2c_sda, peripheral: i2c0, open_drain: true }
+      - { function: adc_in, peripheral: adc1, channel: 7 }
+      - { function: touch, peripheral: touch8 }
+  - id: GPIO9
+    aliases: [SCL]
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: i2c_scl, peripheral: i2c0, open_drain: true }
+      - { function: adc_in, peripheral: adc1, channel: 8 }
+      - { function: touch, peripheral: touch9 }
+  - id: GPIO10
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc1, channel: 9 }
+      - { function: touch, peripheral: touch10 }
+  - id: GPIO11
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc2, channel: 0 }
+      - { function: touch, peripheral: touch11 }
+  - id: GPIO12
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc2, channel: 1 }
+      - { function: touch, peripheral: touch12 }
+  - id: GPIO13
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc2, channel: 2 }
+      - { function: touch, peripheral: touch13 }
+  - id: GPIO14
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc2, channel: 3 }
+      - { function: touch, peripheral: touch14 }
+  - id: GPIO15
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc2, channel: 4 }
+  - id: GPIO16
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: adc_in, peripheral: adc2, channel: 5 }
+  - id: GPIO17
+    aliases: [TX1]
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: uart_tx, peripheral: uart1 }
+      - { function: adc_in, peripheral: adc2, channel: 6 }
+  - id: GPIO18
+    aliases: [RX1]
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: uart_rx, peripheral: uart1 }
+      - { function: adc_in, peripheral: adc2, channel: 7 }
+  - id: GPIO19
+    aliases: [USB_DM]
+    voltage_domain: vdd_io
+    default: usb_dm
+    alt_functions:
+      - { function: usb_dm }
+  - id: GPIO20
+    aliases: [USB_DP]
+    voltage_domain: vdd_io
+    default: usb_dp
+    alt_functions:
+      - { function: usb_dp }
+  - id: GPIO21
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+  - id: GPIO38
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+  - id: GPIO39
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+  - id: GPIO40
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+  - id: GPIO41
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+  - id: GPIO42
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+  - id: GPIO43
+    aliases: [TX0, U0TXD]
+    voltage_domain: vdd_io
+    default: uart_tx
+    alt_functions:
+      - { function: uart_tx, peripheral: uart0 }
+      - { function: gpio, direction: bidir }
+  - id: GPIO44
+    aliases: [RX0, U0RXD]
+    voltage_domain: vdd_io
+    default: uart_rx
+    alt_functions:
+      - { function: uart_rx, peripheral: uart0 }
+      - { function: gpio, direction: bidir }
+  - id: GPIO45
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+  - id: GPIO46
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+  - id: GPIO47
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+  - id: GPIO48
+    voltage_domain: vdd_io
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+expansion_headers:
+  - name: J1
+    pin_count: 22
+    pitch_mm: 2.54
+    pins:
+      - 3V3
+      - 3V3
+      - RST
+      - GPIO4
+      - GPIO5
+      - GPIO6
+      - GPIO7
+      - GPIO15
+      - GPIO16
+      - GPIO17
+      - GPIO18
+      - GPIO8
+      - GPIO3
+      - GPIO46
+      - GPIO9
+      - GPIO10
+      - GPIO11
+      - GPIO12
+      - GPIO13
+      - GPIO14
+      - "5V"
+      - GND
+  - name: J3
+    pin_count: 22
+    pitch_mm: 2.54
+    pins:
+      - GND
+      - "5V"
+      - GND2
+      - GPIO19
+      - GPIO20
+      - GPIO21
+      - RXD0
+      - TXD0
+      - GPIO1
+      - GPIO2
+      - GPIO42
+      - GPIO41
+      - GPIO40
+      - GPIO39
+      - GPIO38
+      - GPIO37
+      - GPIO36
+      - GPIO35
+      - GPIO0
+      - GPIO45
+      - GPIO48
+      - GPIO47
+build:
+  frameworks: [esp-idf, arduino, zephyr, micropython, platformio]
+  flash_mb: 8.0
+  ram_kb: 512
+  psram_mb: 8.0
+kicad:
+  symbol: "hw-registry:ESP32-S3-DevKitC-1"
+  footprint: "hw-registry:ESP32-S3-DevKitC-1"
+external_refs:
+  cpe: "cpe:2.3:h:espressif:esp32-s3-devkitc-1:1.1:*:*:*:*:*:*:*"
+  purl: "pkg:generic/espressif/[email protected]"
+assets:
+  datasheet:
+    primary_url: https://www.espressif.com/sites/default/files/documentation/esp32-s3-devkitc-1_v1.1_schematics.pdf
+    archived_url: https://web.archive.org/web/20240801000000/https://www.espressif.com/sites/default/files/documentation/esp32-s3-devkitc-1_v1.1_schematics.pdf

@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=../../../schemas/module.schema.json
+# SPDX-License-Identifier: CC-BY-4.0
+apiVersion: hwreg/v1
+kind: module
+id: modules/espressif/esp32-s3-wroom-1
+revision: 1.0.0
+summary: "ESP32-S3 WiFi+BLE module, 8MB flash, 8MB octal PSRAM (N8R8 variant)"
+description: >
+  Espressif WROOM-1 SiP module integrating the ESP32-S3 SoC, 8 MB external
+  flash and 8 MB octal-mode PSRAM, a 2.4 GHz PCB antenna, RF front-end and
+  the regulatory shield. Used as the radio core of the ESP32-S3-DevKitC-1.
+  GPIO33–GPIO37 are reserved internally for the octal PSRAM bus on the
+  N8R8 variant and are not brought out at the module level.
+tags: [esp32-s3, wifi, ble, lx7, psram, octal]
+vendor: espressif
+manufacturer_part_number: ESP32-S3-WROOM-1-N8R8
+tested:
+  status: production-tested
+  by: rnd@southerniot.net
+  date: 2026-02-14
+  evidence: "Reflowed onto >20 in-house boards; 6+ months field deployment."
+lifecycle: stable
+code_owner: "@rnd-southerniot/modules"
+electrical:
+  vcc:
+    nominal_v: 3.3
+    min_v: 3.0
+    max_v: 3.6
+  logic:
+    voltage_v: 3.3
+    family: cmos_3v3
+    five_v_tolerant: false
+  current_draw:
+    typ_active_mA: 240
+    sleep_uA: 8
+package:
+  type: LCC-WROOM-1
+  pin_count: 41
+  rf_certifications: [FCC, CE, IC, MIC, KCC, NCC]
+kicad:
+  symbol: "hw-registry:ESP32-S3-WROOM-1"
+  footprint: "hw-registry:Module_Espressif_ESP32-S3-WROOM-1"
+external_refs:
+  cpe: "cpe:2.3:h:espressif:esp32-s3-wroom-1:n8r8:*:*:*:*:*:*:*"
+  purl: "pkg:generic/espressif/esp32-s3-wroom-1@n8r8"
+assets:
+  datasheet:
+    primary_url: https://www.espressif.com/sites/default/files/documentation/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf

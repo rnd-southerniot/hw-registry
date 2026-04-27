@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../../../schemas/chip.schema.json
+# SPDX-License-Identifier: CC-BY-4.0
+apiVersion: hwreg/v1
+kind: chip
+id: chips/st/stm32wle5jc
+revision: 0.0.1
+summary: "Stub for ref resolution; populate when an STM32WLE5JC POC ships."
+vendor: st
+manufacturer_part_number: STM32WLE5JCI6
+tested:
+  status: stub
+  by: rnd@southerniot.net
+  date: 2026-04-28
+  evidence: "Stub — no POC yet. Created so RAK3172.inherits_from can resolve."
+lifecycle: experimental
+package:
+  type: UFBGA-73
+  pin_count: 73

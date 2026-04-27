@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=../../../schemas/driver.schema.json
+# SPDX-License-Identifier: CC-BY-4.0
+apiVersion: hwreg/v1
+kind: driver
+id: drivers/ti/ads1115
+revision: 1.0.0
+summary: "Vetted driver bindings for the TI ADS1115 4-channel 16-bit ADC"
+tested:
+  status: verified
+  by: rnd@southerniot.net
+  date: 2026-04-28
+  evidence: "Bench-verified across all four frameworks; not yet field-deployed."
+lifecycle: stable
+code_owner: "@rnd-southerniot/drivers"
+applies_to:
+  - sensors/ti/ads1115
+bindings:
+  - framework: esp-idf
+    version_constraint: "^1.0.0"
+    component: espressif/esp_ads111x
+    source: https://components.espressif.com/components/espressif/esp_ads111x
+    header: ads111x.h
+    tested_with: ["esp-idf 5.5"]
+    license: Apache-2.0
+  - framework: arduino
+    version_constraint: ">=2.4.0"
+    library: Adafruit_ADS1X15
+    package_index: arduino
+    tested_with: ["arduino-esp32 3.0.1"]
+  - framework: zephyr
+    version_constraint: ">=4.0.0"
+    compatible: "ti,ads1115"
+    binding: dts/bindings/sensor/ti,ads1115.yaml
+    kconfig: CONFIG_ADC_ADS1X1X
+    tested_with: ["zephyr 4.0.0"]
+  - framework: micropython
+    version_constraint: "*"
+    module: ads1x15
+    install: "mip install ads1x15"

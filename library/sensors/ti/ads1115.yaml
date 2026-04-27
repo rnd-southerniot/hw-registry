@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=../../../schemas/sensor.schema.json
+# SPDX-License-Identifier: CC-BY-4.0
+apiVersion: hwreg/v1
+kind: sensor
+id: sensors/ti/ads1115
+revision: 1.0.0
+summary: "I2C 4-channel 16-bit ΔΣ ADC, PGA, 860 SPS, MSOP-10"
+description: >
+  Texas Instruments ADS1115 — 16-bit delta-sigma ADC with four
+  single-ended or two differential inputs, integrated programmable-gain
+  amplifier (×2/3 to ×16), internal voltage reference, and an I²C
+  interface. Up to 860 samples/s. Wide 2.0–5.5 V supply makes it
+  5 V-tolerant on logic when run from a 5 V rail. Default I²C address
+  set by the ADDR pin (one of 0x48/0x49/0x4A/0x4B).
+tags: [adc, 16-bit, i2c, ti, 5v-tolerant]
+vendor: ti
+manufacturer_part_number: ADS1115IDGSR
+tested:
+  status: verified
+  by: rnd@southerniot.net
+  date: 2026-04-28
+  evidence: "Bench-verified single-ended ±4.096 V range against Keithley 2010."
+lifecycle: stable
+code_owner: "@rnd-southerniot/sensors"
+electrical:
+  vcc:
+    nominal_v: 3.3
+    min_v: 2.0
+    max_v: 5.5
+  current_draw:
+    typ_active_mA: 0.15
+    sleep_uA: 0.5
+  logic:
+    voltage_v: 3.3
+    family: cmos_3v3
+    five_v_tolerant: true
+interface:
+  type: i2c
+  speed_max_khz: 400
+constraints:
+  i2c:
+    address: 0x48
+    address_pin_options: [0x48, 0x49, 0x4A, 0x4B]
+    requires_pullups_ohms: 10000
+  interrupt:
+    required: false
+    pin: ALERT
+  power:
+    requires_decoupling: ["100nF X7R close to VDD"]
+  operating_temp_c:
+    min_c: -40
+    max_c: 125
+  accuracy:
+    resolution_bits: 16
+    full_scale_v: "±6.144 (PGA-dependent)"
+  response_time_ms: 1.2
+package:
+  type: MSOP-10
+  pin_count: 10
+  ipc_name: "SOP65P490X110-10N"
+  dimensions:
+    length_mm: 3.0
+    width_mm: 3.0
+    height_mm: 1.1
+drivers:
+  - drivers/ti/ads1115
+kicad:
+  symbol: "hw-registry:ADS1115"
+  footprint: "hw-registry:Package_SO_MSOP-10_3x3mm_P0.5mm"
+external_refs:
+  cpe: "cpe:2.3:h:ti:ads1115:-:*:*:*:*:*:*:*"
+  purl: "pkg:generic/ti/ads1115"
+assets:
+  datasheet:
+    primary_url: https://www.ti.com/lit/ds/symlink/ads1115.pdf
+    archived_url: https://web.archive.org/web/20240801000000/https://www.ti.com/lit/ds/symlink/ads1115.pdf

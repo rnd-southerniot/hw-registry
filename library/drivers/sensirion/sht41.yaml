@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=../../../schemas/driver.schema.json
+# SPDX-License-Identifier: CC-BY-4.0
+apiVersion: hwreg/v1
+kind: driver
+id: drivers/sensirion/sht41
+revision: 1.0.0
+summary: "Vetted driver bindings for SHT41 across embedded frameworks"
+tested:
+  status: production-tested
+  by: rnd@southerniot.net
+  date: 2026-01-08
+  evidence: "Field-deployed in LoRaWAN T/RH nodes since 2025-Q4."
+lifecycle: stable
+code_owner: "@rnd-southerniot/drivers"
+applies_to:
+  - sensors/sensirion/sht41
+bindings:
+  - framework: esp-idf
+    version_constraint: "^1.2.5"
+    component: k0i05/esp_sht4x
+    source: https://components.espressif.com/components/k0i05/esp_sht4x
+    header: sht4x.h
+    sample_call: "sht4x_get_measurement(dev_hdl, &t, &rh);"
+    tested_with: ["esp-idf 5.5"]
+    license: MIT
+  - framework: arduino
+    version_constraint: ">=1.0.4"
+    library: Adafruit_SHT4x
+    package_index: arduino
+    tested_with: ["arduino-esp32 3.0.1"]
+  - framework: zephyr
+    version_constraint: ">=4.0.0"
+    compatible: "sensirion,sht4x"
+    binding: dts/bindings/sensor/sensirion,sht4x.yaml
+    kconfig: CONFIG_SHT4X
+    tested_with: ["zephyr 4.0.0"]
+  - framework: micropython
+    version_constraint: "*"
+    module: adafruit_sht4x
+    install: "mip install adafruit-sht4x"

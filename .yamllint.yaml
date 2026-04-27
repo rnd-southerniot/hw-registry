@@ -23,3 +23,12 @@ rules:
     check-keys: false
 
   comments-indentation: disable
+
+  # Inline flow-style mappings ({ key: value, key: value }) are heavily used
+  # in component YAMLs for compact alt_function entries. Allow one space
+  # inside braces — matches the BLUEPRINT.md example style.
+  braces:
+    max-spaces-inside: 1
+    min-spaces-inside: 0
+    max-spaces-inside-empty: 0
+    min-spaces-inside-empty: 0

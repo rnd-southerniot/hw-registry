@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=../../../schemas/module.schema.json
+# SPDX-License-Identifier: CC-BY-4.0
+apiVersion: hwreg/v1
+kind: module
+id: modules/rakwireless/rak3172
+revision: 1.2.0
+summary: "STM32WLE5JC-based LoRaWAN module, 15×15mm castellated LCC-50"
+description: >
+  RAKwireless RAK3172 — sub-GHz LoRaWAN module built around the
+  ST STM32WLE5JC SoC. Castellated 15×15 mm LCC-50 footprint. Ships from
+  the factory with the RUI3 AT-command firmware on UART2 at 115200 baud
+  but is field-reprogrammable with the open RAKWireless STM32WLE source.
+tags: [lorawan, sub-ghz, stm32wl, at-command, rui3]
+vendor: rakwireless
+manufacturer_part_number: RAK3172
+tested:
+  status: production-tested
+  by: rnd@southerniot.net
+  date: 2026-02-14
+  evidence: "Deployed in 30+ in-field LoRaWAN sensor nodes; 12+ months runtime."
+lifecycle: stable
+code_owner: "@rnd-southerniot/modules"
+electrical:
+  vcc:
+    nominal_v: 3.3
+    min_v: 2.0
+    max_v: 3.6
+  logic:
+    voltage_v: 3.3
+    family: cmos_3v3
+    five_v_tolerant: false
+  current_draw:
+    typ_active_mA: 50
+    sleep_uA: 1.6
+inherits_from:
+  - chips/st/stm32wle5jc@1.0.0
+contains:
+  - ref: chips/st/stm32wle5jc
+    role: mcu
+    qty: 1
+  # NOTE: TCXO and other passives intentionally omitted. The registry
+  # only catalogs parts with a POC; passives are out of scope (see
+  # BLUEPRINT.md Appendix A "Body overrides").
+overrides:
+  pins:
+    - { id: PA0, exposed_as: pin1, alt_functions: [gpio, uart_rx] }
+    - { id: PA1, exposed_as: pin2, alt_functions: [gpio, uart_tx] }
+    - { id: PA2, exposed_as: pin3, alt_functions: [gpio, uart2_tx] }
+    - { id: PA3, exposed_as: pin4, alt_functions: [gpio, uart2_rx] }
+firmware_options:
+  - name: rui3
+    default: true
+    at_baud: 115200
+    at_format: "8N1"
+    repo: github.com/RAKWireless/RUI_v3.x
+  - name: open-stm32wlxx-source
+    default: false
+    repo: github.com/RAKWireless/RUI_v3.x
+package:
+  type: castellated-LCC-50
+  pin_count: 50
+  ipc_name: "LCC50P15X15X25-50N"
+  dimensions:
+    length_mm: 15.0
+    width_mm: 15.0
+    height_mm: 2.5
+  rf_certifications: [FCC, CE, IC, KC]
+kicad:
+  symbol: "hw-registry:RAK3172"
+  footprint: "hw-registry:RAK3172_LCC-50"
+external_refs:
+  cpe: "cpe:2.3:h:rakwireless:rak3172:1.2:*:*:*:*:*:*:*"
+  purl: "pkg:generic/rakwireless/[email protected]"
+assets:
+  datasheet:
+    primary_url: https://docs.rakwireless.com/Product-Categories/WisDuo/RAK3172-Module/Datasheet/
+    archived_url: https://web.archive.org/web/20240801000000/https://docs.rakwireless.com/Product-Categories/WisDuo/RAK3172-Module/Datasheet/
