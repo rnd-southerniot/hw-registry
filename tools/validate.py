@@ -110,9 +110,7 @@ def run_slug_check(library: Path) -> list[str]:
         expected = _path_to_slug(yaml_file, library)
         actual = data.get("id")
         if actual != expected:
-            errors.append(
-                f"{_rel(yaml_file)}: id={actual!r} does not match path slug {expected!r}"
-            )
+            errors.append(f"{_rel(yaml_file)}: id={actual!r} does not match path slug {expected!r}")
     return errors
 
 
@@ -127,9 +125,7 @@ def run_refs_check(library: Path) -> list[str]:
                 continue
             target = library / f"{stripped}.yaml"
             if not target.exists():
-                errors.append(
-                    f"{_rel(yaml_file)}: ref {ref!r} → {_rel(target)} not found"
-                )
+                errors.append(f"{_rel(yaml_file)}: ref {ref!r} → {_rel(target)} not found")
     return errors
 
 
@@ -158,7 +154,7 @@ def run_cycle_check(library: Path) -> list[str]:
                 # Unresolved ref — refs-resolve will report it; skip here.
                 continue
             if color[nxt] == GRAY:
-                cycles.append(path[path.index(nxt):] + [nxt])
+                cycles.append(path[path.index(nxt) :] + [nxt])
             elif color[nxt] == WHITE:
                 dfs(nxt, path + [nxt])
         color[node] = BLACK
@@ -229,11 +225,7 @@ def cycles_cmd(ctx: click.Context) -> None:
 def all_cmd(ctx: click.Context) -> None:
     """Run every validator. Exit non-zero on any error."""
     library: Path = ctx.obj["library"]
-    errors = (
-        run_slug_check(library)
-        + run_refs_check(library)
-        + run_cycle_check(library)
-    )
+    errors = run_slug_check(library) + run_refs_check(library) + run_cycle_check(library)
     _emit(errors, "all", _count_yamls(library))
 
 

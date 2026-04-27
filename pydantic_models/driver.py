@@ -10,7 +10,6 @@ from .common import (
     Strict,
 )
 
-
 ComponentRef = Annotated[str, Field(pattern=COMPONENT_REF_REGEX)]
 
 Framework = Literal["esp-idf", "arduino", "zephyr", "micropython", "platformio"]
@@ -21,7 +20,7 @@ class DriverBinding(Strict):
 
     framework: Framework = Field(description="Target firmware framework.")
     version_constraint: str = Field(
-        description="Version constraint in framework-native syntax (semver range, npm-style, PEP440).",
+        description="Version constraint in framework-native syntax (semver range, npm-style, PEP440).",  # noqa: E501
     )
     source: str | None = Field(
         default=None,
@@ -41,10 +40,10 @@ class DriverBinding(Strict):
     )
     tested_with: list[str] = Field(
         default_factory=list,
-        description="Framework versions verified by hand (e.g. ['esp-idf 5.2.1', 'esp-idf 5.3.0']).",
+        description="Framework versions verified by hand (e.g. ['esp-idf 5.2.1', 'esp-idf 5.3.0']).",  # noqa: E501
     )
     license: str = Field(
-        description="SPDX identifier of the upstream driver library (e.g. MIT, Apache-2.0, BSD-3-Clause).",
+        description="SPDX identifier of the upstream driver library (e.g. MIT, Apache-2.0, BSD-3-Clause).",  # noqa: E501
     )
 
 

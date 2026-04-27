@@ -22,7 +22,9 @@ class AltFunction(Strict):
 class Pin(Strict):
     """A single I/O pin on a chip, module, or board."""
 
-    id: str = Field(description="Pin identifier in the device's native namespace (e.g. GPIO5, PA0).")
+    id: str = Field(
+        description="Pin identifier in the device's native namespace (e.g. GPIO5, PA0)."
+    )
     aliases: list[str] = Field(
         default_factory=list,
         description="Alternate human-friendly names (e.g. SDA, LED_BUILTIN).",

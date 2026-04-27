@@ -13,7 +13,6 @@ from .common import (
     Strict,
 )
 
-
 ComponentRef = Annotated[str, Field(pattern=COMPONENT_REF_REGEX)]
 
 
@@ -35,7 +34,9 @@ class Connector(Identifiable):
     kind: Literal["connector"] = "connector"
 
     vendor: str = Field(description="Vendor slug.")
-    manufacturer_part_number: str = Field(description="Manufacturer P/N (e.g. JST-PH 2-pin SMD top entry).")
+    manufacturer_part_number: str = Field(
+        description="Manufacturer P/N (e.g. JST-PH 2-pin SMD top entry)."
+    )
     pin_count: int = Field(ge=1, description="Number of contacts.")
     pitch_mm: float = Field(description="Pin-to-pin pitch in millimetres.")
     gender: Gender = Field(description="Connector gender.")

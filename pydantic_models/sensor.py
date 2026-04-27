@@ -16,7 +16,6 @@ from .common import (
     Strict,
 )
 
-
 ComponentRef = Annotated[str, Field(pattern=COMPONENT_REF_REGEX)]
 
 
@@ -59,7 +58,9 @@ class SensorConstraints(Strict):
     )
     response_time_ms: float | None = Field(default=None, description="Response time τ₆₃ in ms.")
     sleep_current_uA: float | None = Field(default=None, description="Sleep current in µA.")
-    active_current_uA: float | None = Field(default=None, description="Active conversion current in µA.")
+    active_current_uA: float | None = Field(
+        default=None, description="Active conversion current in µA."
+    )
 
 
 class Sensor(Identifiable):

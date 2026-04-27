@@ -21,7 +21,7 @@ class Package(Strict):
     )
     pin_count: int | None = Field(
         default=None,
-        description="Total pin or pad count (null for shielded modules where exposed pads are the contract).",
+        description="Total pin or pad count (null for shielded modules where exposed pads are the contract).",  # noqa: E501
     )
     pitch_mm: float | None = Field(
         default=None,

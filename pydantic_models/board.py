@@ -42,14 +42,18 @@ class ExpansionHeader(Strict):
     pin_count: int = Field(ge=1, description="Total pin count of the header.")
     pitch_mm: float = Field(description="Pin-to-pin pitch in millimetres (typically 2.54).")
     pins: list[str] = Field(
-        description="Pin.id values in physical order, starting at pin 1. Must match length pin_count.",
+        description="Pin.id values in physical order, starting at pin 1. Must match length pin_count.",  # noqa: E501
     )
 
 
 class BuildSpec(Strict):
     """Toolchain / memory configuration relevant to firmware build."""
 
-    frameworks: list[Literal["esp-idf", "arduino", "zephyr", "micropython", "platformio", "stm32-hal", "pico-sdk"]] = Field(  # noqa: E501
+    frameworks: list[
+        Literal[
+            "esp-idf", "arduino", "zephyr", "micropython", "platformio", "stm32-hal", "pico-sdk"
+        ]
+    ] = Field(  # noqa: E501
         description="Supported firmware frameworks for this board.",
     )
     flash_mb: float | None = Field(default=None, description="External flash size in MB.")
@@ -66,7 +70,9 @@ class Board(Identifiable):
     kind: Literal["board"] = "board"
 
     vendor: str = Field(description="Vendor slug from Zephyr's vendor-prefixes.txt.")
-    manufacturer_part_number: str = Field(description="Manufacturer P/N as printed on the board / box.")
+    manufacturer_part_number: str = Field(
+        description="Manufacturer P/N as printed on the board / box."
+    )
     peripherals: Peripherals = Field(description="Peripheral instance counts of the main SoC.")
     electrical: Electrical = Field(description="Electrical specs.")
     discovery: Discovery = Field(
@@ -95,5 +101,5 @@ class Board(Identifiable):
     assets: AssetBundle | None = Field(default=None, description="Datasheet and additional assets.")
     inherits_from: list[ComponentRef] = Field(
         default_factory=list,
-        description="Component refs (e.g. modules/espressif/esp32-s3-wroom-1@1.0.0) this board inherits from.",
+        description="Component refs (e.g. modules/espressif/esp32-s3-wroom-1@1.0.0) this board inherits from.",  # noqa: E501
     )

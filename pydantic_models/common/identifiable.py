@@ -49,7 +49,7 @@ class Tested(Strict):
     date: _date = Field(description="Sign-off date in ISO 8601 format (YYYY-MM-DD).")
     evidence: str | None = Field(
         default=None,
-        description="POC evidence — repo URL, photo path, or short note. Required by PR template for production-tested.",
+        description="POC evidence — repo URL, photo path, or short note. Required by PR template for production-tested.",  # noqa: E501
     )
 
 
@@ -62,10 +62,10 @@ class Identifiable(Strict):
     )
     kind: Kind = Field(description="Component kind. Determines which model validates this YAML.")
     id: Annotated[str, Field(pattern=COMPONENT_ID_REGEX)] = Field(
-        description="Slug kind/vendor/part. MUST equal the relative path under library/ minus .yaml."
+        description="Slug kind/vendor/part. MUST equal the relative path under library/ minus .yaml."  # noqa: E501
     )
     revision: Annotated[str, Field(pattern=SEMVER_REGEX)] = Field(
-        description="Component revision in SemVer 2.0. MAJOR=pin/electrical break, MINOR=behavior, PATCH=errata.",
+        description="Component revision in SemVer 2.0. MAJOR=pin/electrical break, MINOR=behavior, PATCH=errata.",  # noqa: E501
     )
     summary: str = Field(
         max_length=120,

@@ -9,8 +9,12 @@ class VccSpec(Strict):
     """Supply voltage rail."""
 
     nominal_v: float = Field(description="Nominal supply voltage in volts.")
-    min_v: float | None = Field(default=None, description="Minimum acceptable supply voltage in volts.")
-    max_v: float | None = Field(default=None, description="Maximum acceptable supply voltage in volts.")
+    min_v: float | None = Field(
+        default=None, description="Minimum acceptable supply voltage in volts."
+    )
+    max_v: float | None = Field(
+        default=None, description="Maximum acceptable supply voltage in volts."
+    )
 
 
 class LogicSpec(Strict):

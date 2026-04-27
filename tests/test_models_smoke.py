@@ -12,16 +12,12 @@ from pydantic_models import (
     Connector,
     Driver,
     DriverBinding,
-    Electrical,
     Interface,
-    LogicSpec,
     Module,
     Package,
     Peripherals,
     Sensor,
     SensorConstraints,
-    Tested,
-    VccSpec,
 )
 
 
@@ -45,6 +41,7 @@ def _package(kind: str = "QFN-32") -> dict:
 
 
 # --- Per-kind smoke tests ----------------------------------------------------
+
 
 def test_board_minimal() -> None:
     b = Board.model_validate(
@@ -197,6 +194,7 @@ def test_driver_minimal() -> None:
 
 
 # --- Negative paths ---------------------------------------------------------
+
 
 def test_extra_field_forbidden() -> None:
     """extra='forbid' must reject unknown YAML keys."""

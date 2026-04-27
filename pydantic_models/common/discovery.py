@@ -31,5 +31,5 @@ class Discovery(Strict):
     )
     mac_oui: list[str] = Field(
         default_factory=list,
-        description="MAC address OUIs assigned to this device's WiFi/BT/Ethernet (e.g. 'D0:EF:76').",
+        description="MAC address OUIs assigned to this device's WiFi/BT/Ethernet (e.g. 'D0:EF:76').",  # noqa: E501
     )

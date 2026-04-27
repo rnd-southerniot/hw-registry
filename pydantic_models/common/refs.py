@@ -23,4 +23,6 @@ class ExternalRefs(Strict):
     nexar_part_id: str | None = Field(default=None, description="Nexar GraphQL part ID.")
     mouser_pn: str | None = Field(default=None, description="Mouser part number.")
     digikey_pn: str | None = Field(default=None, description="Digi-Key part number.")
-    jlcpcb_pn: str | None = Field(default=None, description="JLCPCB LCSC part number (e.g. C12345).")
+    jlcpcb_pn: str | None = Field(
+        default=None, description="JLCPCB LCSC part number (e.g. C12345)."
+    )

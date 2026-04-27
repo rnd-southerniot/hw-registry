@@ -16,7 +16,6 @@ from .common import (
     Strict,
 )
 
-
 ComponentRef = Annotated[str, Field(pattern=COMPONENT_REF_REGEX)]
 
 
