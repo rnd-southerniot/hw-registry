@@ -156,6 +156,16 @@ def _signal_is_shared_bus(
     return False
 
 
+# TODO(post-mvp): SIGNAL_NAME_NON_CANONICAL info-rule for arbitrary system
+# signal names. The bus-inference helpers (e.g. _infer_i2c_peripheral in
+# graph.py) match on canonical token substrings ('sda', 'scl', 'mosi', ...);
+# system YAMLs that use non-canonical names ('DATA' instead of 'SDA')
+# silently bypass the inference and don't get the i2c_address edge — so
+# rules like i2c_address_clash never fire on them. The right mitigation
+# is a separate INFO rule that flags non-canonical signal names and
+# recommends the canonical form. Doesn't block, just advises.
+
+
 def i2c_address_clash(graph: nx.MultiDiGraph, _system: System) -> list[Diagnostic]:
     """Two components on the same I²C bus with overlapping address options."""
     diags: list[Diagnostic] = []
@@ -311,6 +321,15 @@ def alt_function_unsupported(graph: nx.MultiDiGraph, _system: System) -> list[Di
     downgrade the diagnostic to INFO — we know the parent vocabulary
     didn't define this function, so the conflict checker reports
     informationally rather than failing the build.
+
+    Permissiveness note: on MCUs with full GPIO matrices (ESP32 family),
+    this rule is intentionally loose — most pins support most functions
+    via the matrix, so the family-token + GPIO-fallback heuristic in
+    ``_function_supported`` rarely fires. On fixed-routing MCUs (STM32,
+    RP2040), the same heuristic tightens automatically because each pin
+    has a small enumerated set of alt_functions. Per-MCU rule overrides
+    (e.g. consulting a chip-level GPIO-matrix table when present) are a
+    post-MVP concern.
     """
     diags: list[Diagnostic] = []
 

@@ -134,3 +134,109 @@ def test_unknown_component_ref(bundle_dir: Path, tmp_path: Path) -> None:
     )
     with pytest.raises(UnresolvedComponentRef, match="sensors/nonexistent/widget"):
         load_system(fixture, bundle_db=bundle_dir / "library.sqlite")
+
+
+# --- Inverted-fixture test for missing_i2c_pullups ---------------------
+#
+# The seed sensors (SHT41, ADS1115) both declare requires_pullups_ohms, so
+# the rule never fires against the real bundle. To verify it fires when it
+# should, we build a synthetic mini-library with a sensor that *omits* the
+# declaration, run the conflict checker against it, and assert the WARN.
+
+
+def _write_yaml(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content)
+
+
+def _synth_minimal_library(lib: Path) -> None:
+    """Tiny library: one minimal board with i2c0 on GPIO8/9 + one i2c sensor
+    that does NOT declare requires_pullups_ohms."""
+    _write_yaml(
+        lib / "boards/example/board.yaml",
+        """\
+apiVersion: hwreg/v1
+kind: board
+id: boards/example/board
+revision: 1.0.0
+summary: "Synthetic minimal board"
+tested: { status: verified, by: test, date: 2026-04-28 }
+lifecycle: stable
+vendor: example
+manufacturer_part_number: TEST-BRD
+peripherals: { i2c: 1 }
+electrical:
+  vcc: { nominal_v: 3.3 }
+  logic: { voltage_v: 3.3 }
+build: { frameworks: [arduino] }
+pins:
+  - id: GPIO8
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: i2c_sda, peripheral: i2c0, open_drain: true }
+  - id: GPIO9
+    default: gpio
+    alt_functions:
+      - { function: gpio, direction: bidir }
+      - { function: i2c_scl, peripheral: i2c0, open_drain: true }
+""",
+    )
+    _write_yaml(
+        lib / "sensors/example/temp.yaml",
+        """\
+apiVersion: hwreg/v1
+kind: sensor
+id: sensors/example/temp
+revision: 1.0.0
+summary: "Synthetic i2c sensor without pullup declaration"
+tested: { status: verified, by: test, date: 2026-04-28 }
+lifecycle: stable
+vendor: example
+manufacturer_part_number: TMP-1
+electrical:
+  vcc: { nominal_v: 3.3 }
+  logic: { voltage_v: 3.3 }
+interface:
+  type: i2c
+  speed_max_khz: 400
+constraints:
+  i2c:
+    address: 0x48
+    # NOTE: requires_pullups_ohms intentionally absent.
+package: { type: SOT-23, pin_count: 5 }
+""",
+    )
+
+
+def test_missing_i2c_pullups_fires(tmp_path: Path) -> None:
+    """A sensor without requires_pullups_ohms triggers MISSING_I2C_PULLUPS warn."""
+    lib = tmp_path / "library"
+    _synth_minimal_library(lib)
+
+    out = tmp_path / "dist"
+    build(lib, out)
+
+    system_yaml = tmp_path / "system.yaml"
+    system_yaml.write_text(
+        """\
+system:
+  board: boards/example/board
+  components:
+    - ref: sensors/example/temp
+      instance: u2
+      pins: { SDA: GPIO8, SCL: GPIO9 }
+"""
+    )
+
+    system = load_system(system_yaml, bundle_db=out / "library.sqlite")
+    graph = build_graph(system)
+    diagnostics = run_all(graph, system)
+
+    pullup_warns = [d for d in diagnostics if d.id == "MISSING_I2C_PULLUPS"]
+    assert len(pullup_warns) == 1, (
+        f"expected exactly 1 MISSING_I2C_PULLUPS, got: {[(d.id, d.message) for d in diagnostics]}"
+    )
+    assert pullup_warns[0].severity == "warning"
+    assert "i2c0" in pullup_warns[0].message
+    assert "u2" in pullup_warns[0].message
