@@ -1,0 +1,18 @@
+# Two SHT41 instances on the same I²C bus, both stuck at the default 0x44
+# address. Expected: exactly 1 ERROR with id I2C_ADDR_CLASH; the diagnostic
+# message must include both instance names (u2, u3) and propose setting
+# the second's ADDR strap to 0x45 (the SHT41-AD1B variant supports both).
+system:
+  board: boards/espressif/esp32-s3-devkitc-1
+  components:
+    - ref: sensors/sensirion/sht41
+      instance: u2
+      pins:
+        SDA: GPIO8
+        SCL: GPIO9
+
+    - ref: sensors/sensirion/sht41
+      instance: u3
+      pins:
+        SDA: GPIO8
+        SCL: GPIO9

@@ -1,0 +1,15 @@
+# SHT41 with its (optional) ALERT-style line mapped onto a strapping pin
+# (GPIO0). Expected: 1 WARN with id STRAPPING_PIN_MISUSE — strapping pins
+# are usable but their boot-time state matters; conflict checker reports
+# the warning so the reviewer verifies the strap value matches the boot
+# behaviour. SDA/SCL stay on the canonical i2c0 pads so no other rules
+# fire.
+system:
+  board: boards/espressif/esp32-s3-devkitc-1
+  components:
+    - ref: sensors/sensirion/sht41
+      instance: u2
+      pins:
+        SDA: GPIO8
+        SCL: GPIO9
+        ALERT: GPIO0

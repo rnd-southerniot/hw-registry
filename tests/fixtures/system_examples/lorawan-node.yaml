@@ -1,0 +1,22 @@
+# LoRaWAN sensor node — clean system YAML expected to produce 0 errors and
+# 0 warnings against the seed library. ESP32-S3 DevKitC + SHT41 (T/RH over I²C)
+# + RAK3172 (LoRaWAN over UART).
+#
+# Pin choices avoid strapping_pins (GPIO0/3/45/46) and reserved USB pins
+# (GPIO19/20). I²C goes on the canonical I2C0 default pads (GPIO8/9). UART
+# uses GPIO17/18 (UART1 default in board pin map). RESET on GPIO16.
+system:
+  board: boards/espressif/esp32-s3-devkitc-1
+  components:
+    - ref: sensors/sensirion/sht41
+      instance: u2
+      pins:
+        SDA: GPIO8
+        SCL: GPIO9
+
+    - ref: modules/rakwireless/rak3172
+      instance: u3
+      pins:
+        uart2_tx: GPIO17
+        uart2_rx: GPIO18
+        RESET: GPIO16

@@ -272,7 +272,12 @@ def _coerce_pin_overrides(
                             AltFunctionShorthandWarning,
                             stacklevel=4,
                         )
-                        new_alts.append({"function": alt})
+                        # Mark with _extended so the conflict checker
+                        # (Prompt 5) can downgrade alt_function_unsupported
+                        # to INFO severity for soft extensions. Stripped
+                        # before user-facing JSON dump; kept in
+                        # library.sqlite for consumer queries.
+                        new_alts.append({"function": alt, "_extended": True})
                 elif isinstance(alt, dict):
                     func_name = alt.get("function")
                     if func_name and func_name in parent_alt_map:
@@ -340,8 +345,24 @@ def assemble_bundle(
 # --- Emit ---------------------------------------------------------------
 
 
+def _strip_internal(obj: Any) -> Any:
+    """Recursively strip ``_``-prefixed keys from dicts and walk lists.
+
+    Applied to the user-facing ``library.json`` and ``index.json``;
+    NOT applied to ``library.sqlite``'s JSON column. Currently only
+    ``_extended`` (soft-fallback marker on AltFunction dicts) uses the
+    private prefix, but the helper is general so future internal
+    markers are automatically scrubbed from user-facing artifacts.
+    """
+    if isinstance(obj, dict):
+        return {k: _strip_internal(v) for k, v in obj.items() if not k.startswith("_")}
+    if isinstance(obj, list):
+        return [_strip_internal(v) for v in obj]
+    return obj
+
+
 def emit_library_json(bundle: dict[str, Any], target: Path) -> None:
-    target.write_text(json.dumps(bundle, indent=2, sort_keys=True) + "\n")
+    target.write_text(json.dumps(_strip_internal(bundle), indent=2, sort_keys=True) + "\n")
 
 
 def emit_index_json(bundle: dict[str, Any], target: Path) -> None:
@@ -355,7 +376,7 @@ def emit_index_json(bundle: dict[str, Any], target: Path) -> None:
         key=lambda r: r["id"],
     )
     index = {"meta": bundle["meta"], "components": list(summary_records)}
-    target.write_text(json.dumps(index, indent=2, sort_keys=True) + "\n")
+    target.write_text(json.dumps(_strip_internal(index), indent=2, sort_keys=True) + "\n")
 
 
 def emit_library_sqlite(bundle: dict[str, Any], target: Path) -> None:
@@ -450,17 +471,21 @@ def build(
     out.mkdir(parents=True, exist_ok=True)
 
     raw = discover(library)
-    bundle = assemble_bundle(
+    bundle_with_internal = assemble_bundle(
         raw,
         source_date_epoch=source_date_epoch,
         git_sha=_git_sha(REPO_ROOT),
     )
 
+    # SQLite keeps the unstripped form so the conflict checker can read
+    # _extended markers on soft-fallback AltFunctions. The user-facing
+    # JSON artifacts (and the in-memory return value) get scrubbed.
+    emit_library_sqlite(bundle_with_internal, out / "library.sqlite")
+    bundle = _strip_internal(bundle_with_internal)
     emit_library_json(bundle, out / "library.json")
-    emit_library_sqlite(bundle, out / "library.sqlite")
     emit_index_json(bundle, out / "index.json")
 
-    return bundle
+    return bundle  # type: ignore[no-any-return]
 
 
 # --- CLI -----------------------------------------------------------------

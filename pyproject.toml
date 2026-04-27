@@ -27,6 +27,7 @@ dependencies = [
     "pyyaml>=6.0",
     "jsonschema>=4.23",
     "click>=8.1",
+    "networkx>=3.3",
 ]
 
 [project.optional-dependencies]
@@ -44,6 +45,7 @@ dev = [
 [project.scripts]
 hwlib-genschema = "tools.generate_schemas:main"
 hwlib-build = "tools.builder.build:main"
+hwlib-check-conflicts = "tools.conflicts.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["pydantic_models", "tools"]
@@ -76,6 +78,13 @@ exclude = [
     "^site/",
     "^packages/",
 ]
+
+[[tool.mypy.overrides]]
+# networkx ships type stubs in a separate package and not all distributions
+# pick them up; the conflict checker uses only well-typed surface (graph
+# construction + edge iteration) and casts at the boundaries.
+module = "networkx"
+ignore_missing_imports = true
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

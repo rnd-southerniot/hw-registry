@@ -33,6 +33,9 @@ validate:  ## Run all semantic validators (slug-equals-path, refs-resolve, inher
 bundle:  ## Build deterministic bundle into dist/
 	$(PYTHON) -m tools.builder --out dist/
 
+conflicts:  ## Run pin-conflict checker on the lorawan-node fixture
+	hwlib-check-conflicts tests/fixtures/system_examples/lorawan-node.yaml
+
 test:  ## Run pytest
 	$(PYTHON) -m pytest -q
 
