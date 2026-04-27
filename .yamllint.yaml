@@ -1,0 +1,25 @@
+# yamllint config — applied to every YAML in the repo via pre-commit.
+# Component YAMLs under library/ also pass JSON Schema validation; this
+# layer catches stylistic drift before schema validation runs.
+
+extends: default
+
+rules:
+  line-length:
+    max: 120
+    level: error
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+    check-multi-line-strings: false
+
+  document-start: disable
+
+  truthy:
+    allowed-values: ["true", "false"]
+    check-keys: false
+
+  comments-indentation: disable

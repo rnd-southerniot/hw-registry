@@ -1,0 +1,101 @@
+# Pre-commit hooks for hw-registry. Contributors and CI run identical checks.
+# Schema-validation hooks match zero files until Prompt 3 lands the seed
+# components — that is intentional and not an error.
+
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  # ---------------------------------------------------------------------
+  # Whitespace, EOF, large files, generic YAML
+  # ---------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-yaml
+        # Default rejects multi-document YAML, which is what we want.
+      - id: check-added-large-files
+        args: ["--maxkb=500", "--enforce-all"]
+
+  # ---------------------------------------------------------------------
+  # Python lint + format
+  # ---------------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.12
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+      - id: ruff-format
+
+  # ---------------------------------------------------------------------
+  # YAML schema validation — one hook per component kind so failures are
+  # routed to the right schema. Hooks no-op while library/ is empty.
+  # ---------------------------------------------------------------------
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.36.0
+    hooks:
+      - id: check-jsonschema
+        name: check-jsonschema (boards)
+        files: ^library/boards/.*\.yaml$
+        args: ["--schemafile", "schemas/board.schema.json"]
+      - id: check-jsonschema
+        name: check-jsonschema (modules)
+        files: ^library/modules/.*\.yaml$
+        args: ["--schemafile", "schemas/module.schema.json"]
+      - id: check-jsonschema
+        name: check-jsonschema (chips)
+        files: ^library/chips/.*\.yaml$
+        args: ["--schemafile", "schemas/chip.schema.json"]
+      - id: check-jsonschema
+        name: check-jsonschema (sensors)
+        files: ^library/sensors/.*\.yaml$
+        args: ["--schemafile", "schemas/sensor.schema.json"]
+      - id: check-jsonschema
+        name: check-jsonschema (drivers)
+        files: ^library/drivers/.*\.yaml$
+        args: ["--schemafile", "schemas/driver.schema.json"]
+      - id: check-jsonschema
+        name: check-jsonschema (connectors)
+        files: ^library/connectors/.*\.yaml$
+        args: ["--schemafile", "schemas/connector.schema.json"]
+
+  # ---------------------------------------------------------------------
+  # YAML lint
+  # ---------------------------------------------------------------------
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        args: ["-c", ".yamllint.yaml", "--strict"]
+
+  # ---------------------------------------------------------------------
+  # Secret scan
+  # ---------------------------------------------------------------------
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
+  # ---------------------------------------------------------------------
+  # Link checker — manual stage only (network-bound, slow)
+  # ---------------------------------------------------------------------
+  - repo: https://github.com/lycheeverse/lychee
+    rev: lychee-v0.16.1
+    hooks:
+      - id: lychee
+        stages: [manual]
+        args: ["--no-progress", "--cache", "--max-cache-age=14d"]
+
+  # ---------------------------------------------------------------------
+  # Local — semantic validators run via tools/validate.py
+  # ---------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: validate-slugs
+        name: validate-slugs
+        entry: python -m tools.validate slug-equals-path
+        language: system
+        pass_filenames: false
+        files: ^library/.*\.yaml$
