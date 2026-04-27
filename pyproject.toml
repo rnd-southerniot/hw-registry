@@ -48,6 +48,11 @@ hwlib-genschema = "tools.generate_schemas:main"
 packages = ["pydantic_models", "tools"]
 
 # --- Ruff ----------------------------------------------------------------
+# Trigger: if per-line `# noqa: E501` markers in pydantic_models/ exceed 20,
+# switch to `[tool.ruff.lint.per-file-ignores] "pydantic_models/*" = ["E501"]`
+# rather than carrying the noqa farm. Long Pydantic Field descriptions are
+# the dominant source; explicit per-site noqas are preferred until the
+# count tips category-level exemption into a clearer win.
 [tool.ruff]
 line-length = 100
 target-version = "py312"
