@@ -771,3 +771,13 @@ When an `overrides.pins[].alt_functions:` shorthand string does not match any `A
 Structural type errors — an `alt_functions` entry that is neither string nor dict — DO raise `MismatchedOverrideShorthand`. That is a YAML-shape bug, distinct from a function-vocabulary extension.
 
 The on-disk bundle (`dist/library.json`) only ever contains fully-realized `AltFunction` dicts — shorthand never escapes the YAML layer. This contract supersedes the original strict design recorded in earlier drafts of `pydantic_models/module.py`'s TODO comment.
+
+### Internal `_*` annotations in `library.sqlite`
+
+Keys prefixed with underscore on resolved-record sub-objects are *internal build-time annotations* preserved in `library.sqlite` for downstream tools that need build provenance. They are stripped from `library.json` and `index.json`, which represent the user-facing data surface.
+
+Currently in use:
+
+- **`_extended: true`** on `AltFunction` dicts: marks entries that came from soft-fallback shorthand coercion (the parent's `AltFunction` table did not define this function name). The conflict checker downgrades `ALT_FUNCTION_UNSUPPORTED` from ERROR to INFO when it encounters one — see `tools/conflicts/rules.py::alt_function_unsupported`.
+
+Tools reading `library.sqlite` should treat any `_*` keys they don't recognize as inert metadata and pass them through unchanged. Tools reading `library.json` should never encounter `_*` keys — if they do, that's a build bug, not a data shape they need to handle.
