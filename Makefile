@@ -30,6 +30,9 @@ schema:  ## Regenerate JSON Schemas from Pydantic models
 validate:  ## Run all semantic validators (slug-equals-path, refs-resolve, inheritance-cycle)
 	$(PYTHON) -m tools.validate all
 
+bundle:  ## Build deterministic bundle into dist/
+	$(PYTHON) -m tools.builder --out dist/
+
 test:  ## Run pytest
 	$(PYTHON) -m pytest -q
 

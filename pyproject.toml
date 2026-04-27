@@ -43,6 +43,7 @@ dev = [
 
 [project.scripts]
 hwlib-genschema = "tools.generate_schemas:main"
+hwlib-build = "tools.builder.build:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["pydantic_models", "tools"]

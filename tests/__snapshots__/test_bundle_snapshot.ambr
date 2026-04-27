@@ -1,0 +1,60 @@
+# serializer version: 1
+# name: test_index_json_snapshot
+  dict({
+    'components': list([
+      dict({
+        'id': 'boards/espressif/esp32-s3-devkitc-1',
+        'kind': 'board',
+        'summary': 'ESP32-S3-WROOM-1, 8MB flash, 8MB octal PSRAM, dual USB-C',
+      }),
+      dict({
+        'id': 'chips/st/stm32wle5jc',
+        'kind': 'chip',
+        'summary': 'Stub for ref resolution; populate when an STM32WLE5JC POC ships.',
+      }),
+      dict({
+        'id': 'drivers/sensirion/sht41',
+        'kind': 'driver',
+        'summary': 'Vetted driver bindings for SHT41 across embedded frameworks',
+      }),
+      dict({
+        'id': 'drivers/ti/ads1115',
+        'kind': 'driver',
+        'summary': 'Vetted driver bindings for the TI ADS1115 4-channel 16-bit ADC',
+      }),
+      dict({
+        'id': 'modules/espressif/esp32-s3-wroom-1',
+        'kind': 'module',
+        'summary': 'ESP32-S3 WiFi+BLE module, 8MB flash, 8MB octal PSRAM (N8R8 variant)',
+      }),
+      dict({
+        'id': 'modules/rakwireless/rak3172',
+        'kind': 'module',
+        'summary': 'STM32WLE5JC-based LoRaWAN module, 15×15mm castellated LCC-50',
+      }),
+      dict({
+        'id': 'sensors/sensirion/sht41',
+        'kind': 'sensor',
+        'summary': 'I2C T/RH sensor, addr 0x44, ±0.2 °C / ±1.8 %RH, DFN-4 1.5×1.5mm',
+      }),
+      dict({
+        'id': 'sensors/ti/ads1115',
+        'kind': 'sensor',
+        'summary': 'I2C 4-channel 16-bit ΔΣ ADC, PGA, 860 SPS, MSOP-10',
+      }),
+    ]),
+    'meta': dict({
+      'count_by_kind': dict({
+        'board': 1,
+        'chip': 1,
+        'driver': 2,
+        'module': 2,
+        'sensor': 2,
+      }),
+      'generated_at': '2024-05-01T00:00:00+00:00',
+      'git_sha': '<elided-for-snapshot>',
+      'schema_version': 1,
+      'total_count': 8,
+    }),
+  })
+# ---
