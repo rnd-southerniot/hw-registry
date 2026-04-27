@@ -18,7 +18,19 @@ from .common import (
 
 
 class Peripherals(Strict):
-    """Counts of peripheral instances exposed by the board's main SoC."""
+    """Counts of peripheral instances exposed by the board's main SoC.
+
+    Flat int form is intentional. BLUEPRINT.md sec 3.1 shows a richer
+    nested shape (``spi: { count: 4, max_clock_mhz: 80, user_usable: 2 }``);
+    the flat form aligns with Prompt 3's "peripherals counts" wording and
+    is sufficient for the MVP. See BLUEPRINT.md Appendix A "Section 3.1
+    illustrative-only divergences" for the rationale.
+
+    TODO(post-mvp): consider migrating to nested {count, max_clock_*,
+    user_usable} once the conflict checker (Prompt 5) grows
+    peripheral-allocation rules — at that point the extra metadata
+    earns its keep.
+    """
 
     uart: int | None = Field(default=None, ge=0)
     i2c: int | None = Field(default=None, ge=0)

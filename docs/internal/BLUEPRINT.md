@@ -756,3 +756,10 @@ The following blueprint examples are wrong; the Pydantic source is canonical. Wh
 - **Passives are not cataloged in MVP.** Section 3.2's `contains: [{ ref: passives/tcxo-32mhz, role: tcxo, qty: 1 }]` is illustrative of *composition semantics*, not a real ref-resolve target. The `Kind` enum intentionally omits `passives` — the registry's "POC-only" rule does not apply to a 100 nF cap. Real RAK3172 YAML omits the TCXO entry; only the SoC cross-reference (`chips/st/stm32wle5jc`) appears in `contains:`. If passives ever belong in the registry, it is a separate scoped PR — not a quiet enum addition.
 - **`PackageDimensions` canonical shape is `{length_mm, width_mm, height_mm}`**, not `{x, y, z}`. Sections 3.1, 3.2, and 3.3 show `dimensions_mm: { x, y, z }`; those examples are wrong. Long-form names are self-documenting (which axis is "x"?) and units are explicit, not buried in a comment. When authoring real YAMLs use the long-form names.
 - **`DriverBinding.tested_with` is `list[str]`**, not a single string. Section 3.4 shows `tested_with: "ESP-IDF 5.5"`; that example is wrong. Real drivers get tested against multiple framework versions over time (e.g. `tested_with: ["esp-idf 5.4.0", "esp-idf 5.5.1"]`). The list form supports that history honestly.
+
+### Section 3.1 illustrative-only divergences
+
+Section 3.1 is the labeled "Board example" block, used to communicate the overall *shape* of a board YAML. It is not a verbatim authoring source — only sections 3.2 / 3.3 / 3.4 carry that contract. The Pydantic models intentionally diverge from sec 3.1 in two narrow places:
+
+- **Peripherals are flat int counts** (`spi: 4`, `i2c: 2`), not nested dicts with `count / max_clock_mhz / user_usable`. The flat form aligns with Prompt 3's text ("peripherals counts") and is sufficient for the MVP. The nested form is reserved for post-MVP, when the conflict checker grows peripheral-allocation rules — at which point distinguishing "4 SPI controllers, 2 user-usable" from "4 SPI controllers" actually matters.
+- **`build.flash_mb`** (model), not `build.flash_size_mb` (blueprint). Pure naming preference; the model wins.
