@@ -1,0 +1,38 @@
+# Test / dev artifacts — never belong in the runtime image.
+**/tests
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/.coverage
+**/htmlcov
+**/.venv
+**/venv
+**/node_modules
+
+# Build artifacts (the Dockerfile only consumes dist/library.{json,sqlite,index.json},
+# not random build/* outputs).
+**/build
+**/*.egg-info
+**/.eggs
+
+# Repo metadata that's not needed inside the image.
+.git
+.github
+.gitignore
+.gitattributes
+.editorconfig
+.pre-commit-config.yaml
+.yamllint.yaml
+
+# Per-package READMEs / changelogs are duplicated outside the image's
+# data surface; the image is for runtime, not browsing.
+**/README.md
+**/CHANGELOG.md
+**/LICENSE
+
+# Editor / Claude Code settings.
+.idea
+.vscode
+.claude

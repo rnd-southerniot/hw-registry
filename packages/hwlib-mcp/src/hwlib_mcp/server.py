@@ -20,9 +20,16 @@ from pathlib import Path
 from typing import Any
 
 from fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 from . import data, errors
 from .suggestions import suggest_close_ids
+
+# Bundle schema version. Mirrors tools.builder.build.BUNDLE_SCHEMA_VERSION;
+# duplicated here so the runtime image doesn't import the root distribution
+# just to read this constant. If the bundle schema bumps, both sites update.
+BUNDLE_SCHEMA_VERSION = 1
 
 logger = logging.getLogger(__name__)
 
@@ -432,5 +439,54 @@ def build_server(data_dir: Path) -> FastMCP:
                 indent=2,
             )
         return schema_file.read_text()
+
+    # --- /health (HTTP-only, outside the MCP protocol routes) -------------
+    #
+    # Plain HTTP GET so orchestrator liveness probes can check server
+    # health without speaking MCP. Available only when the server runs
+    # in --http mode (Streamable HTTP transport); stdio runs ignore the
+    # route. FastMCP exposes @custom_route for exactly this — non-MCP
+    # HTTP routes get appended to the Starlette app the http transport
+    # builds.
+
+    @mcp.custom_route("/health", methods=["GET"])
+    async def health_endpoint(_request: Request) -> JSONResponse:
+        """Return server health for orchestrator liveness probes.
+
+        Contract:
+          200 {"status": "ok", "bundle_present": true,
+               "component_count": <int>, "schema_version": <int>}
+          503 {"status": "bundle_missing", "bundle_present": false,
+               "data_dir": "<path>"}
+        """
+        if not data.bundle_present(data_dir):
+            return JSONResponse(
+                {
+                    "status": "bundle_missing",
+                    "bundle_present": False,
+                    "data_dir": str(data_dir),
+                },
+                status_code=503,
+            )
+        try:
+            count = len(data.all_ids(data_dir))
+        except Exception:  # noqa: BLE001
+            return JSONResponse(
+                {
+                    "status": "bundle_unreadable",
+                    "bundle_present": True,
+                    "data_dir": str(data_dir),
+                },
+                status_code=503,
+            )
+        return JSONResponse(
+            {
+                "status": "ok",
+                "bundle_present": True,
+                "component_count": count,
+                "schema_version": BUNDLE_SCHEMA_VERSION,
+            },
+            status_code=200,
+        )
 
     return mcp

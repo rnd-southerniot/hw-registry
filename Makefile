@@ -45,6 +45,20 @@ mcp-run:  ## Run hwlib-mcp pointing at the local dist/ bundle
 mcp-test:  ## Run hwlib-mcp test suite
 	cd packages/hwlib-mcp && pytest -q
 
+# --- Docker image + compose ---------------------------------------------
+
+image:  ## Build hwlib-mcp container image (rebuilds bundle first)
+	bash packages/hwlib-mcp/scripts/build-image.sh
+
+compose-up:  ## Start hwlib-mcp via docker compose (rebuilds image)
+	docker compose up -d --build
+
+compose-down:  ## Stop and remove the compose-managed hwlib-mcp container
+	docker compose down
+
+compose-logs:  ## Tail hwlib-mcp container logs
+	docker compose logs -f hwlib-mcp
+
 test:  ## Run pytest
 	$(PYTHON) -m pytest -q
 

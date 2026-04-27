@@ -1,0 +1,48 @@
+# Local-dev compose for the hwlib-mcp container.
+#
+# Build context is the repo root so the Dockerfile (under
+# packages/hwlib-mcp/) can COPY dist/. Mount ./dist read-only so a
+# rebuilt bundle is picked up without rebuilding the image during
+# authoring loops.
+#
+# Boot:
+#     make compose-up
+# Probe:
+#     curl -s http://localhost:8080/health | jq
+# Tear down:
+#     make compose-down
+
+services:
+  hwlib-mcp:
+    container_name: hwlib-mcp
+    build:
+      context: .
+      dockerfile: packages/hwlib-mcp/Dockerfile
+    image: hwlib-mcp:dev
+    command: ["--http", "--port", "8080"]
+    ports:
+      - "8080:8080"
+    volumes:
+      # Read-only mount of the local bundle so re-runs of `make bundle`
+      # are picked up without rebuilding the image. The Dockerfile bakes
+      # in a copy of dist/ at build time; this mount overrides it.
+      - ./dist:/opt/hwlib/data:ro
+    environment:
+      HWLIB_DATA_DIR: /opt/hwlib/data
+    restart: unless-stopped
+    healthcheck:
+      # The image itself does not declare HEALTHCHECK (distroless has no
+      # shell to exec). Compose layers a Python-based probe against the
+      # /health endpoint the server exposes in --http mode.
+      test:
+        # urllib.request.urlopen raises HTTPError on non-2xx responses,
+        # so the process exits non-zero automatically when /health
+        # returns 503 — no extra status-code dance required.
+        - CMD
+        - /usr/bin/python3
+        - -c
+        - "import urllib.request as u; u.urlopen('http://127.0.0.1:8080/health', timeout=3)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
