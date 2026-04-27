@@ -45,5 +45,8 @@ Thumbs.db
 *.key
 secrets/
 
+# --- Claude Code machine-local state -------------------------------------
+.claude/settings.local.json
+
 # --- Build outputs we never commit ---------------------------------------
 schemas/.cache/
