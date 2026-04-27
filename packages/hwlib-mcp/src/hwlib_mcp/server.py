@@ -32,6 +32,16 @@ logger = logging.getLogger(__name__)
 # installed standalone (post-Prompt-10 PyPI publish), the module is
 # absent and ``hwlib_check_pin_conflicts`` returns a structured
 # checker_unavailable response.
+#
+# TODO(prompt-10): replace lazy-import + checker_unavailable fallback
+# with a proper path-dep on tools/conflicts/. The right shape depends
+# on how the release wiring extracts conflict-checker code: own wheel
+# (`hwlib-conflicts`?), folded into `hwlib-data`, or kept inside the
+# root `hw-registry-tools` distribution. The lazy fallback is the
+# correct hold pattern until that question is answered holistically;
+# hardening to a path-dep now requires the root tooling to be wheel-
+# installable, which it is not yet (still a flat dev tree under
+# tools/).
 try:
     from tools.conflicts import (  # type: ignore[import-not-found]
         BundleNotBuilt as _ToolsBundleNotBuilt,
