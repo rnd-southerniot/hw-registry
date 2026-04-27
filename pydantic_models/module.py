@@ -111,8 +111,25 @@ class Module(Identifiable):
     #    looking up the parent component's matching AltFunction (by
     #    `function` name) and copying it. Mixed shorthand-and-dict forms
     #    in one override list are allowed; explicit dict fields overlay
-    #    parent fields per-key. A shorthand string that does not match any
-    #    parent AltFunction is rejected as `MismatchedOverrideShorthand`.
+    #    parent fields per-key.
+    #
+    #    UNMATCHED shorthand (string names a function the parent's
+    #    AltFunction table does not define) is NOT a hard error — modules
+    #    legitimately extend their parent's function vocabulary (vendor-
+    #    specific firmware functions, e.g. RAK3172's RUI3 AT-firmware
+    #    ports on pins the underlying STM32WLE5JC has no concept of). The
+    #    resolver coerces unmatched shorthand to {function: <name>} (a
+    #    minimum-info entry) and emits a build-time WARNING
+    #    (AltFunctionShorthandWarning) with file path and pin context. CI
+    #    reports warnings; PR reviewers eyeball them for typos. A typo
+    #    PR shows the warning, the reviewer asks "did you mean uart_rx?",
+    #    author fixes, warning goes away. Legitimate extensions show the
+    #    warning indefinitely until the parent chip YAML is enriched.
+    #
+    #    STRUCTURAL type errors (alt_functions entry that is neither
+    #    string nor dict) still raise MismatchedOverrideShorthand —
+    #    that is a YAML shape bug, not an extension.
+    #
     #    The on-disk bundle (dist/library.json) only ever contains the
     #    fully-realized AltFunction dicts — shorthand never escapes the
     #    YAML layer.

@@ -37,11 +37,26 @@ class UnknownOverrideKey(BuilderError):
 
 
 class MismatchedOverrideShorthand(BuilderError):
-    """An ``overrides.pins[].alt_functions`` entry could not be coerced.
+    """An ``overrides.pins[].alt_functions`` entry has the wrong structural type.
 
-    Raised only for entries that are neither a string (handled by the
-    soft-fallback path) nor a dict — i.e. structural type errors. A
-    shorthand string that does not match any parent ``AltFunction`` is
-    handled by the soft-fallback policy and does NOT raise this error;
-    see the resolver docstring for the policy decision.
+    Raised only for entries that are neither a string nor a dict — i.e.
+    YAML-shape bugs (an int, a list-of-list, etc.). A shorthand string
+    that does not match any parent ``AltFunction`` is NOT this error
+    case: modules legitimately extend their parent's function vocabulary
+    (vendor-specific firmware functions, e.g. RAK3172's RUI3 AT-firmware
+    on pins the underlying STM32WLE5JC has no concept of). Unmatched
+    shorthand emits ``AltFunctionShorthandWarning`` and coerces to a
+    minimum-info ``{function: <name>}`` entry.
+    """
+
+
+class AltFunctionShorthandWarning(UserWarning):
+    """Emitted when an ``overrides.pins[].alt_functions`` shorthand string
+    does not match any AltFunction defined on the resolved parent.
+
+    Not an error: modules legitimately extend their parent's function
+    vocabulary. The warning surfaces typos in CI logs for human review;
+    a typo PR shows the warning, the reviewer says "did you mean
+    uart_rx?", author fixes, warning goes away. Filterable via standard
+    Python warnings filters (``-W ignore::tools.builder.errors.AltFunctionShorthandWarning``).
     """

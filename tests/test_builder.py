@@ -15,6 +15,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import warnings
 from pathlib import Path
 
 import pytest
@@ -24,6 +25,7 @@ from tools.builder import (
     UnknownOverrideKey,
     build,
 )
+from tools.builder.errors import AltFunctionShorthandWarning
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 LIBRARY = REPO_ROOT / "library"
@@ -99,8 +101,16 @@ def test_inheritance_resolution(tmp_path: Path) -> None:
     fields, so this is mostly a smoke test that inheritance does not
     error. Richer resolution tests live in the synthetic-fixture suite
     below and arrive in earnest when a real chip YAML lands.
+
+    RAK3172's ``overrides.pins`` use shorthand against the bare chip
+    stub, which fires ``AltFunctionShorthandWarning`` for every entry —
+    expected behavior, not the focus of this test. Suppress those
+    warnings here; ``test_alt_function_shorthand_soft_fallback`` is the
+    test that asserts they fire.
     """
-    bundle = build(LIBRARY, tmp_path)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", AltFunctionShorthandWarning)
+        bundle = build(LIBRARY, tmp_path)
 
     rak3172 = bundle["components"]["modules/rakwireless/rak3172"]
     assert rak3172["id"] == "modules/rakwireless/rak3172"
@@ -241,7 +251,7 @@ overrides:
 
 
 def test_alt_function_shorthand_soft_fallback(tmp_path: Path) -> None:
-    """Shorthand against a stub parent (no AltFunctions) coerces to bare `{function: <name>}`."""
+    """Shorthand against a stub parent emits warnings + coerces to bare `{function: <name>}`."""
     lib = tmp_path / "library"
     _chip_stub(lib)
     _write_yaml(
@@ -268,9 +278,20 @@ overrides:
 """,
     )
 
-    bundle = build(lib, tmp_path / "dist")
-    bar = bundle["components"]["modules/example/bar"]
+    with pytest.warns(AltFunctionShorthandWarning) as record:
+        bundle = build(lib, tmp_path / "dist")
 
+    # Both shorthand strings ('gpio' and 'uart_rx') were unmatched against
+    # the bare stub parent — both should warn.
+    messages = [str(w.message) for w in record]
+    assert any("'gpio'" in m for m in messages)
+    assert any("'uart_rx'" in m for m in messages)
+    # Warning text includes the inferred YAML path and the pin id.
+    assert all("library/modules/example/bar.yaml" in m for m in messages)
+    assert all("'PA0'" in m for m in messages)
+    assert all("treating as new function" in m for m in messages)
+
+    bar = bundle["components"]["modules/example/bar"]
     pins = bar.get("pins") or []
     pa0 = next((p for p in pins if p.get("id") == "PA0"), None)
     assert pa0 is not None

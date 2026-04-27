@@ -24,6 +24,7 @@ import json
 import os
 import sqlite3
 import subprocess
+import warnings
 from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
@@ -44,6 +45,7 @@ from pydantic_models import (
 )
 
 from .errors import (
+    AltFunctionShorthandWarning,
     BuilderError,
     ComponentValidationError,
     InheritanceCycleError,
@@ -214,22 +216,25 @@ def _coerce_pin_overrides(
     supported; dict entries with a known ``function`` overlay parent fields
     per-key.
 
-    **Soft-fallback policy** (deviation from the strict design recorded in
-    ``pydantic_models/module.py``'s TODO): if a shorthand string does NOT
-    match any parent ``AltFunction``, it coerces to a minimal
-    ``{function: <string>}`` rather than raising
-    ``MismatchedOverrideShorthand``. Rationale: for MVP the chip stub
-    parent (``chips/st/stm32wle5jc``) has no ``pins`` enumerated, so
-    ``RAK3172.overrides.pins[].alt_functions: [gpio, uart_rx]`` cannot
-    look up against parent at all. Strict semantics would force every
-    Module to inline its parent chip's full pin/AltFunction surface or
-    abandon shorthand. Soft fallback preserves authoring shape and
-    degrades gracefully — downstream consumers that want richer context
-    (peripheral instance, direction, open_drain) get it when the parent
-    has it, and get the bare function name when it doesn't.
+    **Unmatched shorthand is NOT an error.** A module legitimately extends
+    its parent's function vocabulary — RAK3172 exposes vendor-specific
+    RUI3 AT-firmware functions on pins whose underlying STM32WLE5JC has
+    no concept of them. Strict-fail on unmatched shorthand would block
+    legitimate extension and force every Module to inline its parent
+    chip's full AltFunction surface or abandon shorthand entirely.
+
+    Instead: unmatched shorthand coerces to a minimum-info
+    ``{function: <name>}`` entry AND emits an
+    ``AltFunctionShorthandWarning`` so reviewers can spot typos in CI
+    logs. A typo PR shows the warning, the reviewer asks "did you mean
+    ``uart_rx``?", author fixes, warning goes away. Legitimate
+    extensions show the warning indefinitely until the parent chip YAML
+    is enriched with the new function — at which point shorthand starts
+    resolving cleanly and the warning self-clears.
 
     Structural type errors (``alt_functions`` entry that is neither
-    string nor dict) still raise ``MismatchedOverrideShorthand``.
+    string nor dict) DO raise ``MismatchedOverrideShorthand`` — that is
+    a YAML-shape bug, distinct from a function-vocabulary extension.
     """
     parent_pin_map: dict[str, dict[str, Any]] = {}
     for p in parent_pins:
@@ -255,7 +260,18 @@ def _coerce_pin_overrides(
                     if alt in parent_alt_map:
                         new_alts.append(dict(parent_alt_map[alt]))
                     else:
-                        # Soft fallback — see docstring.
+                        # Soft fallback — see docstring. Inferred path
+                        # mirrors the slug-equals-path rule from CLAUDE.md
+                        # so no extra plumbing is needed to point reviewers
+                        # at the offending YAML.
+                        inferred_path = f"library/{component_id}.yaml"
+                        warnings.warn(
+                            f"{inferred_path}: alt_function {alt!r} on pin "
+                            f"{coerced_pin.get('id', '<?>')!r} not found in "
+                            "parent's AltFunction table; treating as new function.",
+                            AltFunctionShorthandWarning,
+                            stacklevel=4,
+                        )
                         new_alts.append({"function": alt})
                 elif isinstance(alt, dict):
                     func_name = alt.get("function")

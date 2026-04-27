@@ -91,4 +91,12 @@ filterwarnings = [
     # prefix; pytest correctly skips it (Pydantic models have __init__) but
     # warns. The model name is right; suppress the noise.
     "ignore:cannot collect test class 'Tested':pytest.PytestCollectionWarning",
+    # AltFunctionShorthandWarning fires whenever a Module override uses
+    # shorthand against a parent that does not define the function (e.g.
+    # RAK3172 against the bare STM32WLE5JC stub). It is intentional CI
+    # surface, not test noise — the targeted test
+    # test_alt_function_shorthand_soft_fallback re-enables it via
+    # pytest.warns. Globally filtered here so the other tests that build
+    # the real library are not flooded with expected warnings.
+    "ignore::tools.builder.errors.AltFunctionShorthandWarning",
 ]
