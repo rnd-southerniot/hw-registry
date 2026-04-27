@@ -80,3 +80,9 @@ warn_required_dynamic_aliases = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+filterwarnings = [
+    # The Pydantic model `Tested` matches pytest's default class-collection
+    # prefix; pytest correctly skips it (Pydantic models have __init__) but
+    # warns. The model name is right; suppress the noise.
+    "ignore:cannot collect test class 'Tested':pytest.PytestCollectionWarning",
+]
