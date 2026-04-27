@@ -86,6 +86,36 @@ class Module(Identifiable):
         default_factory=dict,
         description="Field-by-field overrides applied on top of contained parts during inheritance resolution.",  # noqa: E501
     )
+    # TODO(prompt-4) — bundle resolver semantics for `overrides`:
+    #
+    # 1. Merge precedence (top-level fields under `overrides`):
+    #    - Lists merge by REPLACEMENT (child's list fully replaces parent's).
+    #      No `merge: append / by_id` modes in MVP — keep the rule simple,
+    #      add modes only when a real component needs them.
+    #    - Dicts merge by DEEP-UPDATE (child's keys win, parent's other keys
+    #      are preserved).
+    #    - The `overrides` block is the most-specific layer; it is applied
+    #      LAST, after the `inherits_from` chain has been resolved.
+    #
+    # 2. Override-key validation:
+    #    Override keys MUST correspond to fields on the resolved parent
+    #    model. An override key that names a field the parent does not
+    #    have is rejected as `UnknownOverrideKey`. Catches typos at
+    #    bundle-build time (the parent isn't known to the model alone, so
+    #    the check has to live in the resolver).
+    #
+    # 3. AltFunction shorthand coercion:
+    #    Inside `overrides.pins[].alt_functions`, authors may use shorthand
+    #    string entries (`alt_functions: [gpio, uart_rx]`) instead of full
+    #    AltFunction dicts. The resolver coerces each shorthand string by
+    #    looking up the parent component's matching AltFunction (by
+    #    `function` name) and copying it. Mixed shorthand-and-dict forms
+    #    in one override list are allowed; explicit dict fields overlay
+    #    parent fields per-key. A shorthand string that does not match any
+    #    parent AltFunction is rejected as `MismatchedOverrideShorthand`.
+    #    The on-disk bundle (dist/library.json) only ever contains the
+    #    fully-realized AltFunction dicts — shorthand never escapes the
+    #    YAML layer.
     firmware_options: list[FirmwareOption] = Field(
         default_factory=list,
         description="Pre-flashed firmware variants offered by the vendor (e.g. AT-command stacks).",
