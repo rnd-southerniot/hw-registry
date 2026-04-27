@@ -1,0 +1,240 @@
+{
+  "$comment": "SPDX-License-Identifier: CC-BY-4.0",
+  "$defs": {
+    "DriverBinding": {
+      "additionalProperties": false,
+      "description": "A per-framework binding describing how to consume the driver in a project.",
+      "properties": {
+        "component": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "ESP-IDF component manifest ID (e.g. espressif/esp_ads111x).",
+          "title": "Component"
+        },
+        "framework": {
+          "description": "Target firmware framework.",
+          "enum": [
+            "esp-idf",
+            "arduino",
+            "zephyr",
+            "micropython",
+            "platformio"
+          ],
+          "title": "Framework",
+          "type": "string"
+        },
+        "library": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Arduino library name (e.g. Adafruit_ADS1X15).",
+          "title": "Library"
+        },
+        "license": {
+          "description": "SPDX identifier of the upstream driver library (e.g. MIT, Apache-2.0, BSD-3-Clause).",
+          "title": "License",
+          "type": "string"
+        },
+        "module": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Zephyr/MicroPython module name or DT-compatible string (e.g. 'ti,ads1115').",
+          "title": "Module"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source URL \u2014 git repo, registry URL, or 'core' if shipped with the framework.",
+          "title": "Source"
+        },
+        "tested_with": {
+          "description": "Framework versions verified by hand (e.g. ['esp-idf 5.2.1', 'esp-idf 5.3.0']).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tested With",
+          "type": "array"
+        },
+        "version_constraint": {
+          "description": "Version constraint in framework-native syntax (semver range, npm-style, PEP440).",
+          "title": "Version Constraint",
+          "type": "string"
+        }
+      },
+      "required": [
+        "framework",
+        "version_constraint",
+        "license"
+      ],
+      "title": "DriverBinding",
+      "type": "object"
+    },
+    "Tested": {
+      "additionalProperties": false,
+      "description": "POC sign-off record. Required on every component.",
+      "properties": {
+        "by": {
+          "description": "Engineer who signed off (email or GitHub handle).",
+          "title": "By",
+          "type": "string"
+        },
+        "date": {
+          "description": "Sign-off date in ISO 8601 format (YYYY-MM-DD).",
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "POC evidence \u2014 repo URL, photo path, or short note. Required by PR template for production-tested.",
+          "title": "Evidence"
+        },
+        "status": {
+          "description": "POC verification status.",
+          "enum": [
+            "experimental",
+            "stable",
+            "production-tested",
+            "stub"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "by",
+        "date"
+      ],
+      "title": "Tested",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A driver \u2014 pointer + version constraints across one or more frameworks.",
+  "properties": {
+    "apiVersion": {
+      "const": "hwreg/v1",
+      "description": "Schema API version. Pinned to hwreg/v1; bumping requires a v2 migration.",
+      "title": "Apiversion",
+      "type": "string"
+    },
+    "applies_to": {
+      "description": "Component refs this driver supports (sensors, chips, modules).",
+      "items": {
+        "pattern": "^[a-z]+/[a-z0-9-]+/[a-z0-9-]+(?:@\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?)?$",
+        "type": "string"
+      },
+      "title": "Applies To",
+      "type": "array"
+    },
+    "bindings": {
+      "description": "Per-framework bindings; at least one required.",
+      "items": {
+        "$ref": "#/$defs/DriverBinding"
+      },
+      "minItems": 1,
+      "title": "Bindings",
+      "type": "array"
+    },
+    "code_owner": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "GitHub team or handle responsible for this component.",
+      "title": "Code Owner"
+    },
+    "id": {
+      "description": "Slug kind/vendor/part. MUST equal the relative path under library/ minus .yaml.",
+      "pattern": "^[a-z]+/[a-z0-9-]+/[a-z0-9-]+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "const": "driver",
+      "default": "driver",
+      "title": "Kind",
+      "type": "string"
+    },
+    "lifecycle": {
+      "description": "Lifecycle stage. Drives deprecation surfacing for downstream consumers.",
+      "enum": [
+        "preview",
+        "active",
+        "deprecated",
+        "end-of-life"
+      ],
+      "title": "Lifecycle",
+      "type": "string"
+    },
+    "revision": {
+      "description": "Component revision in SemVer 2.0. MAJOR=pin/electrical break, MINOR=behavior, PATCH=errata.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
+      "title": "Revision",
+      "type": "string"
+    },
+    "summary": {
+      "description": "One-line human description (\u2264 120 characters).",
+      "maxLength": 120,
+      "title": "Summary",
+      "type": "string"
+    },
+    "tested": {
+      "$ref": "#/$defs/Tested",
+      "description": "POC sign-off record."
+    }
+  },
+  "required": [
+    "apiVersion",
+    "id",
+    "revision",
+    "summary",
+    "tested",
+    "lifecycle",
+    "applies_to",
+    "bindings"
+  ],
+  "title": "Driver",
+  "type": "object"
+}

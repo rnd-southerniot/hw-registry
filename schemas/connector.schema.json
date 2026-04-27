@@ -1,0 +1,486 @@
+{
+  "$comment": "SPDX-License-Identifier: CC-BY-4.0",
+  "$defs": {
+    "Asset": {
+      "additionalProperties": false,
+      "description": "Reference to a file living inside the repo (potentially under LFS).",
+      "properties": {
+        "lfs": {
+          "default": false,
+          "description": "True if this asset is stored via Git LFS (binary > 500 KB).",
+          "title": "Lfs",
+          "type": "boolean"
+        },
+        "license": {
+          "description": "SPDX identifier for this asset (e.g. CC-BY-4.0, MIT, vendor-redistribution).",
+          "title": "License",
+          "type": "string"
+        },
+        "path": {
+          "description": "Repo-relative path (e.g. assets/sensors/sht41/pinout.svg).",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "license"
+      ],
+      "title": "Asset",
+      "type": "object"
+    },
+    "AssetBundle": {
+      "additionalProperties": false,
+      "description": "Aggregate of datasheet plus optional pinout and additional assets.",
+      "properties": {
+        "additional": {
+          "description": "Other linked assets (3D models, KiCad projects, application notes).",
+          "items": {
+            "$ref": "#/$defs/Asset"
+          },
+          "title": "Additional",
+          "type": "array"
+        },
+        "datasheet": {
+          "$ref": "#/$defs/Datasheet",
+          "description": "Primary datasheet reference."
+        },
+        "pinout_svg": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Asset"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Auto-generated SVG pinout (CC-BY-4.0). Populated by tools/render_pinout.py."
+        }
+      },
+      "required": [
+        "datasheet"
+      ],
+      "title": "AssetBundle",
+      "type": "object"
+    },
+    "ConnectorPin": {
+      "additionalProperties": false,
+      "description": "A single contact in a connector.",
+      "properties": {
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Datasheet caveats or polarity notes.",
+          "title": "Notes"
+        },
+        "position": {
+          "description": "Pin position (1-indexed).",
+          "minimum": 1,
+          "title": "Position",
+          "type": "integer"
+        },
+        "signal": {
+          "description": "Default signal name (e.g. VCC, GND, SDA, D+, RX).",
+          "title": "Signal",
+          "type": "string"
+        }
+      },
+      "required": [
+        "position",
+        "signal"
+      ],
+      "title": "ConnectorPin",
+      "type": "object"
+    },
+    "Datasheet": {
+      "additionalProperties": false,
+      "description": "Manufacturer datasheet pointer with archival fallback.",
+      "properties": {
+        "archived_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "web.archive.org snapshot for offline / link-rot resilience.",
+          "title": "Archived Url"
+        },
+        "primary_url": {
+          "description": "Vendor-hosted authoritative URL.",
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Primary Url",
+          "type": "string"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SHA-256 of the PDF when archived locally; null if linking only.",
+          "title": "Sha256"
+        }
+      },
+      "required": [
+        "primary_url"
+      ],
+      "title": "Datasheet",
+      "type": "object"
+    },
+    "ExternalRefs": {
+      "additionalProperties": false,
+      "description": "Distributor and catalog cross-references.",
+      "properties": {
+        "digikey_pn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digi-Key part number.",
+          "title": "Digikey Pn"
+        },
+        "jlcpcb_pn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "JLCPCB LCSC part number (e.g. C12345).",
+          "title": "Jlcpcb Pn"
+        },
+        "mouser_pn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Mouser part number.",
+          "title": "Mouser Pn"
+        },
+        "nexar_part_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Nexar GraphQL part ID.",
+          "title": "Nexar Part Id"
+        },
+        "octopart_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Octopart canonical URL.",
+          "title": "Octopart Url"
+        }
+      },
+      "title": "ExternalRefs",
+      "type": "object"
+    },
+    "KicadRefs": {
+      "additionalProperties": false,
+      "description": "KiCad symbol, footprint, and 3D model pointers.",
+      "properties": {
+        "footprint": {
+          "description": "Library:footprint path (e.g. hw-registry:DFN-4-1EP_2x2mm).",
+          "title": "Footprint",
+          "type": "string"
+        },
+        "model_3d": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "3D model path relative to repo root (typically under LFS).",
+          "title": "Model 3D"
+        },
+        "symbol": {
+          "description": "Library:symbol path (e.g. hw-registry:SHT41).",
+          "title": "Symbol",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol",
+        "footprint"
+      ],
+      "title": "KicadRefs",
+      "type": "object"
+    },
+    "Tested": {
+      "additionalProperties": false,
+      "description": "POC sign-off record. Required on every component.",
+      "properties": {
+        "by": {
+          "description": "Engineer who signed off (email or GitHub handle).",
+          "title": "By",
+          "type": "string"
+        },
+        "date": {
+          "description": "Sign-off date in ISO 8601 format (YYYY-MM-DD).",
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "POC evidence \u2014 repo URL, photo path, or short note. Required by PR template for production-tested.",
+          "title": "Evidence"
+        },
+        "status": {
+          "description": "POC verification status.",
+          "enum": [
+            "experimental",
+            "stable",
+            "production-tested",
+            "stub"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "by",
+        "date"
+      ],
+      "title": "Tested",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A physical mating connector.",
+  "properties": {
+    "apiVersion": {
+      "const": "hwreg/v1",
+      "description": "Schema API version. Pinned to hwreg/v1; bumping requires a v2 migration.",
+      "title": "Apiversion",
+      "type": "string"
+    },
+    "assets": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AssetBundle"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "code_owner": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "GitHub team or handle responsible for this component.",
+      "title": "Code Owner"
+    },
+    "external_refs": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExternalRefs"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "gender": {
+      "description": "Connector gender.",
+      "enum": [
+        "male",
+        "female",
+        "hermaphroditic"
+      ],
+      "title": "Gender",
+      "type": "string"
+    },
+    "id": {
+      "description": "Slug kind/vendor/part. MUST equal the relative path under library/ minus .yaml.",
+      "pattern": "^[a-z]+/[a-z0-9-]+/[a-z0-9-]+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "kicad": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/KicadRefs"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "kind": {
+      "const": "connector",
+      "default": "connector",
+      "title": "Kind",
+      "type": "string"
+    },
+    "lifecycle": {
+      "description": "Lifecycle stage. Drives deprecation surfacing for downstream consumers.",
+      "enum": [
+        "preview",
+        "active",
+        "deprecated",
+        "end-of-life"
+      ],
+      "title": "Lifecycle",
+      "type": "string"
+    },
+    "manufacturer_part_number": {
+      "description": "Manufacturer P/N (e.g. JST-PH 2-pin SMD top entry).",
+      "title": "Manufacturer Part Number",
+      "type": "string"
+    },
+    "mating_part": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z]+/[a-z0-9-]+/[a-z0-9-]+(?:@\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Component ref of the typical mating connector.",
+      "title": "Mating Part"
+    },
+    "mounting": {
+      "description": "Board mounting style.",
+      "enum": [
+        "smd",
+        "tht",
+        "edge",
+        "panel"
+      ],
+      "title": "Mounting",
+      "type": "string"
+    },
+    "pin_count": {
+      "description": "Number of contacts.",
+      "minimum": 1,
+      "title": "Pin Count",
+      "type": "integer"
+    },
+    "pinout": {
+      "description": "Per-position signal assignment.",
+      "items": {
+        "$ref": "#/$defs/ConnectorPin"
+      },
+      "title": "Pinout",
+      "type": "array"
+    },
+    "pitch_mm": {
+      "description": "Pin-to-pin pitch in millimetres.",
+      "title": "Pitch Mm",
+      "type": "number"
+    },
+    "revision": {
+      "description": "Component revision in SemVer 2.0. MAJOR=pin/electrical break, MINOR=behavior, PATCH=errata.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
+      "title": "Revision",
+      "type": "string"
+    },
+    "summary": {
+      "description": "One-line human description (\u2264 120 characters).",
+      "maxLength": 120,
+      "title": "Summary",
+      "type": "string"
+    },
+    "tested": {
+      "$ref": "#/$defs/Tested",
+      "description": "POC sign-off record."
+    },
+    "vendor": {
+      "description": "Vendor slug.",
+      "title": "Vendor",
+      "type": "string"
+    }
+  },
+  "required": [
+    "apiVersion",
+    "id",
+    "revision",
+    "summary",
+    "tested",
+    "lifecycle",
+    "vendor",
+    "manufacturer_part_number",
+    "pin_count",
+    "pitch_mm",
+    "gender",
+    "mounting"
+  ],
+  "title": "Connector",
+  "type": "object"
+}

@@ -1,0 +1,877 @@
+{
+  "$comment": "SPDX-License-Identifier: CC-BY-4.0",
+  "$defs": {
+    "AltFunction": {
+      "additionalProperties": false,
+      "description": "Mux-selectable peripheral function on a pin.",
+      "properties": {
+        "channel": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Peripheral channel or index (e.g. ADC1 channel 3).",
+          "title": "Channel"
+        },
+        "name": {
+          "description": "Function name (e.g. I2C0_SDA, SPI2_MOSI).",
+          "title": "Name",
+          "type": "string"
+        },
+        "peripheral": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Peripheral instance owning this function (e.g. I2C0, SPI2).",
+          "title": "Peripheral"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "AltFunction",
+      "type": "object"
+    },
+    "Asset": {
+      "additionalProperties": false,
+      "description": "Reference to a file living inside the repo (potentially under LFS).",
+      "properties": {
+        "lfs": {
+          "default": false,
+          "description": "True if this asset is stored via Git LFS (binary > 500 KB).",
+          "title": "Lfs",
+          "type": "boolean"
+        },
+        "license": {
+          "description": "SPDX identifier for this asset (e.g. CC-BY-4.0, MIT, vendor-redistribution).",
+          "title": "License",
+          "type": "string"
+        },
+        "path": {
+          "description": "Repo-relative path (e.g. assets/sensors/sht41/pinout.svg).",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "license"
+      ],
+      "title": "Asset",
+      "type": "object"
+    },
+    "AssetBundle": {
+      "additionalProperties": false,
+      "description": "Aggregate of datasheet plus optional pinout and additional assets.",
+      "properties": {
+        "additional": {
+          "description": "Other linked assets (3D models, KiCad projects, application notes).",
+          "items": {
+            "$ref": "#/$defs/Asset"
+          },
+          "title": "Additional",
+          "type": "array"
+        },
+        "datasheet": {
+          "$ref": "#/$defs/Datasheet",
+          "description": "Primary datasheet reference."
+        },
+        "pinout_svg": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Asset"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Auto-generated SVG pinout (CC-BY-4.0). Populated by tools/render_pinout.py."
+        }
+      },
+      "required": [
+        "datasheet"
+      ],
+      "title": "AssetBundle",
+      "type": "object"
+    },
+    "CoreSpec": {
+      "additionalProperties": false,
+      "description": "CPU core configuration.",
+      "properties": {
+        "architecture": {
+          "description": "ISA family (e.g. arm-cortex-m4f, xtensa-lx7, riscv32).",
+          "title": "Architecture",
+          "type": "string"
+        },
+        "cores": {
+          "default": 1,
+          "description": "Number of CPU cores.",
+          "minimum": 1,
+          "title": "Cores",
+          "type": "integer"
+        },
+        "fpu": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Hardware floating-point unit present.",
+          "title": "Fpu"
+        },
+        "max_clock_mhz": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maximum CPU clock in MHz.",
+          "title": "Max Clock Mhz"
+        }
+      },
+      "required": [
+        "architecture"
+      ],
+      "title": "CoreSpec",
+      "type": "object"
+    },
+    "CurrentDraw": {
+      "additionalProperties": false,
+      "description": "Typical and worst-case current consumption.",
+      "properties": {
+        "max_mA": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Worst-case operating current in mA.",
+          "title": "Max Ma"
+        },
+        "sleep_uA": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Deep-sleep current in \u00b5A.",
+          "title": "Sleep Ua"
+        },
+        "typical_mA": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Typical operating current in mA.",
+          "title": "Typical Ma"
+        }
+      },
+      "title": "CurrentDraw",
+      "type": "object"
+    },
+    "Datasheet": {
+      "additionalProperties": false,
+      "description": "Manufacturer datasheet pointer with archival fallback.",
+      "properties": {
+        "archived_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "web.archive.org snapshot for offline / link-rot resilience.",
+          "title": "Archived Url"
+        },
+        "primary_url": {
+          "description": "Vendor-hosted authoritative URL.",
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Primary Url",
+          "type": "string"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SHA-256 of the PDF when archived locally; null if linking only.",
+          "title": "Sha256"
+        }
+      },
+      "required": [
+        "primary_url"
+      ],
+      "title": "Datasheet",
+      "type": "object"
+    },
+    "Electrical": {
+      "additionalProperties": false,
+      "description": "Aggregate electrical specifications for a component.",
+      "properties": {
+        "current_draw": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CurrentDraw"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Typical and worst-case current draw."
+        },
+        "logic": {
+          "$ref": "#/$defs/LogicSpec"
+        },
+        "power_budget_mA": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Total power budget at the board / module level in mA.",
+          "title": "Power Budget Ma"
+        },
+        "vcc": {
+          "$ref": "#/$defs/VccSpec"
+        }
+      },
+      "required": [
+        "vcc",
+        "logic"
+      ],
+      "title": "Electrical",
+      "type": "object"
+    },
+    "ExternalRefs": {
+      "additionalProperties": false,
+      "description": "Distributor and catalog cross-references.",
+      "properties": {
+        "digikey_pn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digi-Key part number.",
+          "title": "Digikey Pn"
+        },
+        "jlcpcb_pn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "JLCPCB LCSC part number (e.g. C12345).",
+          "title": "Jlcpcb Pn"
+        },
+        "mouser_pn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Mouser part number.",
+          "title": "Mouser Pn"
+        },
+        "nexar_part_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Nexar GraphQL part ID.",
+          "title": "Nexar Part Id"
+        },
+        "octopart_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Octopart canonical URL.",
+          "title": "Octopart Url"
+        }
+      },
+      "title": "ExternalRefs",
+      "type": "object"
+    },
+    "KicadRefs": {
+      "additionalProperties": false,
+      "description": "KiCad symbol, footprint, and 3D model pointers.",
+      "properties": {
+        "footprint": {
+          "description": "Library:footprint path (e.g. hw-registry:DFN-4-1EP_2x2mm).",
+          "title": "Footprint",
+          "type": "string"
+        },
+        "model_3d": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "3D model path relative to repo root (typically under LFS).",
+          "title": "Model 3D"
+        },
+        "symbol": {
+          "description": "Library:symbol path (e.g. hw-registry:SHT41).",
+          "title": "Symbol",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol",
+        "footprint"
+      ],
+      "title": "KicadRefs",
+      "type": "object"
+    },
+    "LogicSpec": {
+      "additionalProperties": false,
+      "description": "Digital I/O voltage levels.",
+      "properties": {
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Logic family identifier (e.g. CMOS, LVTTL).",
+          "title": "Family"
+        },
+        "five_v_tolerant": {
+          "default": false,
+          "description": "True if I/O pins tolerate 5 V signals despite VCCIO < 5 V.",
+          "title": "Five V Tolerant",
+          "type": "boolean"
+        },
+        "voltage_v": {
+          "description": "I/O voltage in volts (typically 1.8, 3.3, or 5.0).",
+          "title": "Voltage V",
+          "type": "number"
+        }
+      },
+      "required": [
+        "voltage_v"
+      ],
+      "title": "LogicSpec",
+      "type": "object"
+    },
+    "Package": {
+      "additionalProperties": false,
+      "description": "Physical package envelope.",
+      "properties": {
+        "dimensions": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PackageDimensions"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Outer physical dimensions."
+        },
+        "pin_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Total pin or pad count (null for shielded modules where exposed pads are the contract).",
+          "title": "Pin Count"
+        },
+        "pitch_mm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Pin-to-pin pitch in millimetres.",
+          "title": "Pitch Mm"
+        },
+        "type": {
+          "description": "Package family (e.g. QFN-32, MSOP-10, LCC-WROOM-1, BGA-484).",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Package",
+      "type": "object"
+    },
+    "PackageDimensions": {
+      "additionalProperties": false,
+      "description": "Outer dimensions of the physical package in millimetres.",
+      "properties": {
+        "height_mm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Height (z-axis) in mm.",
+          "title": "Height Mm"
+        },
+        "length_mm": {
+          "description": "Length along the longest axis in mm.",
+          "title": "Length Mm",
+          "type": "number"
+        },
+        "width_mm": {
+          "description": "Width along the shorter axis in mm.",
+          "title": "Width Mm",
+          "type": "number"
+        }
+      },
+      "required": [
+        "length_mm",
+        "width_mm"
+      ],
+      "title": "PackageDimensions",
+      "type": "object"
+    },
+    "Pin": {
+      "additionalProperties": false,
+      "description": "A single I/O pin on a chip, module, or board.",
+      "properties": {
+        "aliases": {
+          "description": "Alternate human-friendly names (e.g. SDA, LED_BUILTIN).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "alt_functions": {
+          "description": "Mux-selectable alternate functions in addition to the default.",
+          "items": {
+            "$ref": "#/$defs/AltFunction"
+          },
+          "title": "Alt Functions",
+          "type": "array"
+        },
+        "default": {
+          "description": "Default function on cold boot (e.g. GPIO, JTAG_TDI, I2C_SDA).",
+          "title": "Default",
+          "type": "string"
+        },
+        "id": {
+          "description": "Pin identifier in the device's native namespace (e.g. GPIO5, PA0).",
+          "title": "Id",
+          "type": "string"
+        },
+        "package_pin": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Physical pin reference: int for numbered packages (QFN/QFP), str for grid refs like 'A4' (BGA), null for breakouts without a package mapping.",
+          "title": "Package Pin"
+        },
+        "voltage_domain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Voltage rail powering this pin (e.g. VDDIO, VDDA).",
+          "title": "Voltage Domain"
+        }
+      },
+      "required": [
+        "id",
+        "default"
+      ],
+      "title": "Pin",
+      "type": "object"
+    },
+    "Tested": {
+      "additionalProperties": false,
+      "description": "POC sign-off record. Required on every component.",
+      "properties": {
+        "by": {
+          "description": "Engineer who signed off (email or GitHub handle).",
+          "title": "By",
+          "type": "string"
+        },
+        "date": {
+          "description": "Sign-off date in ISO 8601 format (YYYY-MM-DD).",
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "POC evidence \u2014 repo URL, photo path, or short note. Required by PR template for production-tested.",
+          "title": "Evidence"
+        },
+        "status": {
+          "description": "POC verification status.",
+          "enum": [
+            "experimental",
+            "stable",
+            "production-tested",
+            "stub"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "by",
+        "date"
+      ],
+      "title": "Tested",
+      "type": "object"
+    },
+    "VccSpec": {
+      "additionalProperties": false,
+      "description": "Supply voltage rail.",
+      "properties": {
+        "max_v": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maximum acceptable supply voltage in volts.",
+          "title": "Max V"
+        },
+        "min_v": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Minimum acceptable supply voltage in volts.",
+          "title": "Min V"
+        },
+        "nominal_v": {
+          "description": "Nominal supply voltage in volts.",
+          "title": "Nominal V",
+          "type": "number"
+        }
+      },
+      "required": [
+        "nominal_v"
+      ],
+      "title": "VccSpec",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A silicon device \u2014 MCU, SoC, transceiver, peripheral IC.",
+  "properties": {
+    "apiVersion": {
+      "const": "hwreg/v1",
+      "description": "Schema API version. Pinned to hwreg/v1; bumping requires a v2 migration.",
+      "title": "Apiversion",
+      "type": "string"
+    },
+    "assets": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AssetBundle"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "code_owner": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "GitHub team or handle responsible for this component.",
+      "title": "Code Owner"
+    },
+    "core": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CoreSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "CPU core spec for MCUs/SoCs."
+    },
+    "electrical": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Electrical"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Electrical specs. Optional for stub entries that exist only to anchor refs."
+    },
+    "external_refs": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExternalRefs"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "flash_kb": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "On-die flash size in KB.",
+      "title": "Flash Kb"
+    },
+    "id": {
+      "description": "Slug kind/vendor/part. MUST equal the relative path under library/ minus .yaml.",
+      "pattern": "^[a-z]+/[a-z0-9-]+/[a-z0-9-]+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "inherits_from": {
+      "items": {
+        "pattern": "^[a-z]+/[a-z0-9-]+/[a-z0-9-]+(?:@\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?)?$",
+        "type": "string"
+      },
+      "title": "Inherits From",
+      "type": "array"
+    },
+    "kicad": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/KicadRefs"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "kind": {
+      "const": "chip",
+      "default": "chip",
+      "title": "Kind",
+      "type": "string"
+    },
+    "lifecycle": {
+      "description": "Lifecycle stage. Drives deprecation surfacing for downstream consumers.",
+      "enum": [
+        "preview",
+        "active",
+        "deprecated",
+        "end-of-life"
+      ],
+      "title": "Lifecycle",
+      "type": "string"
+    },
+    "manufacturer_part_number": {
+      "description": "Manufacturer P/N (e.g. STM32WLE5JCI6).",
+      "title": "Manufacturer Part Number",
+      "type": "string"
+    },
+    "package": {
+      "$ref": "#/$defs/Package",
+      "description": "Physical package."
+    },
+    "pins": {
+      "description": "Pin list with default and alt functions; empty for stubs.",
+      "items": {
+        "$ref": "#/$defs/Pin"
+      },
+      "title": "Pins",
+      "type": "array"
+    },
+    "ram_kb": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "On-die RAM size in KB.",
+      "title": "Ram Kb"
+    },
+    "revision": {
+      "description": "Component revision in SemVer 2.0. MAJOR=pin/electrical break, MINOR=behavior, PATCH=errata.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
+      "title": "Revision",
+      "type": "string"
+    },
+    "summary": {
+      "description": "One-line human description (\u2264 120 characters).",
+      "maxLength": 120,
+      "title": "Summary",
+      "type": "string"
+    },
+    "tested": {
+      "$ref": "#/$defs/Tested",
+      "description": "POC sign-off record."
+    },
+    "vendor": {
+      "description": "Vendor slug from Zephyr's vendor-prefixes.txt.",
+      "title": "Vendor",
+      "type": "string"
+    }
+  },
+  "required": [
+    "apiVersion",
+    "id",
+    "revision",
+    "summary",
+    "tested",
+    "lifecycle",
+    "vendor",
+    "manufacturer_part_number",
+    "package"
+  ],
+  "title": "Chip",
+  "type": "object"
+}
