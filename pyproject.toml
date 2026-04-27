@@ -1,0 +1,82 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hw-registry-tools"
+version = "0.1.0"
+description = "Dev tooling for the hw-registry hardware library: Pydantic models, schema generator, validators, bundle builder."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+authors = [
+    { name = "Southern IoT Limited", email = "rnd@southerniot.net" },
+]
+keywords = ["hardware", "embedded", "registry", "pydantic", "mcp"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Embedded Systems",
+]
+
+dependencies = [
+    "pydantic>=2.8",
+    "pyyaml>=6.0",
+    "jsonschema>=4.23",
+    "click>=8.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov",
+    "syrupy",
+    "ruff",
+    "mypy",
+    "pre-commit",
+    "check-jsonschema",
+    "types-pyyaml",
+]
+
+[project.scripts]
+hwlib-genschema = "tools.generate_schemas:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pydantic_models", "tools"]
+
+# --- Ruff ----------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+
+# --- Mypy ----------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+exclude = [
+    "^tests/",
+    "^build/",
+    "^dist/",
+    "^site/",
+    "^packages/",
+]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+# --- Pytest --------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
