@@ -1,21 +1,35 @@
 """Pin / signal model used by boards, modules, and chips."""
 
+from typing import Literal
+
 from pydantic import Field
 
 from .identifiable import Strict
+
+PinDirection = Literal["in", "out", "bidir"]
 
 
 class AltFunction(Strict):
     """Mux-selectable peripheral function on a pin."""
 
-    name: str = Field(description="Function name (e.g. I2C0_SDA, SPI2_MOSI).")
+    function: str = Field(
+        description="Function identifier (e.g. gpio, i2c_sda, spi_mosi, adc_in, uart_tx).",
+    )
     peripheral: str | None = Field(
         default=None,
-        description="Peripheral instance owning this function (e.g. I2C0, SPI2).",
+        description="Peripheral instance owning this function (e.g. i2c0, spi2, adc1).",
     )
     channel: int | None = Field(
         default=None,
-        description="Peripheral channel or index (e.g. ADC1 channel 3).",
+        description="Peripheral channel or index (e.g. ADC1 channel 7).",
+    )
+    direction: PinDirection | None = Field(
+        default=None,
+        description="Signal direction relative to the device (in / out / bidir).",
+    )
+    open_drain: bool = Field(
+        default=False,
+        description="True if the function is open-drain (e.g. I²C SDA/SCL).",
     )
 
 
@@ -38,10 +52,17 @@ class Pin(Strict):
     )
     voltage_domain: str | None = Field(
         default=None,
-        description="Voltage rail powering this pin (e.g. VDDIO, VDDA).",
+        description="Voltage rail powering this pin (e.g. VDDIO, VDDA, vdd_io).",
+    )
+    exposed_as: str | None = Field(
+        default=None,
+        description=(
+            "When this pin is re-exposed at a different level (e.g. chip pin PA0 brought out "
+            "as module pin 'pin1'), the outer-level identifier."
+        ),
     )
     default: str = Field(
-        description="Default function on cold boot (e.g. GPIO, JTAG_TDI, I2C_SDA).",
+        description="Default function on cold boot (e.g. gpio, JTAG_TDI, i2c_sda).",
     )
     alt_functions: list[AltFunction] = Field(
         default_factory=list,

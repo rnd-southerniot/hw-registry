@@ -748,3 +748,11 @@ These decisions were made during prompt execution and refine — but do not cont
 - **`@semver` suffix on `inherits_from` and `contains[].ref`**. Stripped at filesystem-resolve time by `tools/validate.py refs-resolve`; semantically meaningful only to the bundle resolver (Prompt 4).
 - **`Datasheet.primary_url`**. Pydantic `HttpUrl` (strict). Air-gap distribution ships datasheets bundled, not via `file://` URLs.
 - **KiCad refs in MVP**. Placeholder strings (`hw-registry:<MPN>`) are fine until Prompt B post-MVP wires real `.kicad_sym` libraries. `model_3d` may be `null` in MVP YAMLs.
+
+### Body overrides — Pydantic models intentionally diverge from blueprint examples
+
+The following blueprint examples are wrong; the Pydantic source is canonical. When authoring real YAMLs, follow the Pydantic shape, not the blueprint example. Reconciled during the 22-site model-evolution commit aligning the models with sections 3.1–3.4.
+
+- **Passives are not cataloged in MVP.** Section 3.2's `contains: [{ ref: passives/tcxo-32mhz, role: tcxo, qty: 1 }]` is illustrative of *composition semantics*, not a real ref-resolve target. The `Kind` enum intentionally omits `passives` — the registry's "POC-only" rule does not apply to a 100 nF cap. Real RAK3172 YAML omits the TCXO entry; only the SoC cross-reference (`chips/st/stm32wle5jc`) appears in `contains:`. If passives ever belong in the registry, it is a separate scoped PR — not a quiet enum addition.
+- **`PackageDimensions` canonical shape is `{length_mm, width_mm, height_mm}`**, not `{x, y, z}`. Sections 3.1, 3.2, and 3.3 show `dimensions_mm: { x, y, z }`; those examples are wrong. Long-form names are self-documenting (which axis is "x"?) and units are explicit, not buried in a comment. When authoring real YAMLs use the long-form names.
+- **`DriverBinding.tested_with` is `list[str]`**, not a single string. Section 3.4 shows `tested_with: "ESP-IDF 5.5"`; that example is wrong. Real drivers get tested against multiple framework versions over time (e.g. `tested_with: ["esp-idf 5.4.0", "esp-idf 5.5.1"]`). The list form supports that history honestly.

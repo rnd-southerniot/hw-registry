@@ -1,8 +1,12 @@
 """Electrical specs shared across boards, modules, chips, and sensors."""
 
+from typing import Literal
+
 from pydantic import Field
 
 from .identifiable import Strict
+
+VccSource = Literal["usb-c", "usb-a", "barrel-jack", "pin-header", "poe", "battery"]
 
 
 class VccSpec(Strict):
@@ -14,6 +18,10 @@ class VccSpec(Strict):
     )
     max_v: float | None = Field(
         default=None, description="Maximum acceptable supply voltage in volts."
+    )
+    source: VccSource | None = Field(
+        default=None,
+        description="Where the rail comes from (board-level field; irrelevant for chips/sensors).",
     )
 
 
@@ -34,7 +42,10 @@ class LogicSpec(Strict):
 class CurrentDraw(Strict):
     """Typical and worst-case current consumption."""
 
-    typical_mA: float | None = Field(default=None, description="Typical operating current in mA.")
+    typ_active_mA: float | None = Field(
+        default=None,
+        description="Typical active operating current in mA.",
+    )
     max_mA: float | None = Field(default=None, description="Worst-case operating current in mA.")
     sleep_uA: float | None = Field(default=None, description="Deep-sleep current in µA.")
 

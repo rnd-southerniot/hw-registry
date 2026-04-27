@@ -26,8 +26,14 @@ COMPONENT_REF_REGEX = (
 )
 
 Kind = Literal["board", "module", "chip", "sensor", "connector", "driver"]
-Lifecycle = Literal["preview", "active", "deprecated", "end-of-life"]
-TestedStatus = Literal["experimental", "stable", "production-tested", "stub"]
+# Lifecycle: where on its market arc a component sits. Distinct from Tested,
+# which records whether someone on the team got it working.
+Lifecycle = Literal["experimental", "stable", "deprecated", "eol", "archived"]
+# TestedStatus: has someone on the team gotten this working?
+#   stub             — placeholder for ref-resolve only; no POC.
+#   verified         — built and ran a POC, single context.
+#   production-tested — deployed in a shipping system.
+TestedStatus = Literal["stub", "verified", "production-tested"]
 
 
 class Strict(BaseModel):
@@ -70,6 +76,15 @@ class Identifiable(Strict):
     summary: str = Field(
         max_length=120,
         description="One-line human description (≤ 120 characters).",
+    )
+    description: str | None = Field(
+        default=None,
+        max_length=500,
+        description="Optional paragraph-form description (≤ 500 chars). Use summary for the one-liner.",  # noqa: E501
+    )
+    tags: list[str] = Field(
+        default_factory=list,
+        description="Free-form tags powering MCP search faceting (e.g. wifi, ble, lorawan, lx7).",
     )
     tested: Tested = Field(description="POC sign-off record.")
     lifecycle: Lifecycle = Field(

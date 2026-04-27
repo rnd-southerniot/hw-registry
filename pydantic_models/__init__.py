@@ -24,16 +24,28 @@ from .common import (
     Package,
     PackageDimensions,
     Pin,
+    PinDirection,
     Strict,
     Tested,
     TestedStatus,
     UsbId,
+    VccSource,
     VccSpec,
 )
 from .connector import Connector, ConnectorPin, Gender, Mounting
 from .driver import Driver, DriverBinding, Framework
 from .module import ContainedPart, FirmwareOption, Module
-from .sensor import Sensor, SensorConstraints, TempRange, VoltageRange
+from .sensor import (
+    I2CConstraints,
+    InterruptConstraint,
+    PowerConstraints,
+    Sensor,
+    SensorConstraints,
+    SPIConstraints,
+    TempRange,
+    UARTConstraints,
+    VoltageRange,
+)
 
 __all__ = [
     "COMPONENT_ID_REGEX",
@@ -60,9 +72,11 @@ __all__ = [
     "FirmwareOption",
     "Framework",
     "Gender",
+    "I2CConstraints",
     "Identifiable",
     "Interface",
     "InterfaceType",
+    "InterruptConstraint",
     "KicadRefs",
     "Kind",
     "Lifecycle",
@@ -73,13 +87,18 @@ __all__ = [
     "PackageDimensions",
     "Peripherals",
     "Pin",
+    "PinDirection",
+    "PowerConstraints",
+    "SPIConstraints",
     "Sensor",
     "SensorConstraints",
     "Strict",
     "TempRange",
     "Tested",
     "TestedStatus",
+    "UARTConstraints",
     "UsbId",
+    "VccSource",
     "VccSpec",
     "VoltageRange",
 ]

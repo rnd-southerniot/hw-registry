@@ -1,10 +1,17 @@
 """Sensor / chip electrical interface descriptor.
 
-Single flat model with type-specific fields nullable. A model_validator that
-enforces field-vs-type compatibility (no spi_* on i2c interfaces, etc.) is a
-post-MVP refinement; today extra='forbid' blocks unknown keys but does NOT
-block known keys set on the wrong type. Authoring discipline carries the
-weight until the validator lands.
+Bus-specific *constraints* (I²C address, address pin options, pullup
+requirement) live on ``SensorConstraints.i2c`` per BLUEPRINT.md sec 3.3.
+``Interface`` carries the bus *type* and a generic ``speed_max_khz`` plus
+SPI/UART/OneWire/analog/PWM-specific fields the model has historically
+accepted.
+
+TODO(post-mvp): tighten Interface with a type-discriminated validator
+(e.g. forbid spi_mode on i2c interfaces).
+
+TODO(blueprint-driven): when a real SPI / UART / OneWire sensor lands,
+move the protocol-specific fields off Interface and onto
+SensorConstraints.<bus> — analogous to the I²C move done for site #17/18.
 """
 
 from typing import Literal
@@ -20,27 +27,15 @@ class Interface(Strict):
     """Communication / signal interface for a sensor or peripheral."""
 
     type: InterfaceType = Field(description="Bus or signal protocol family.")
-
-    # --- I2C ---------------------------------------------------------------
-    i2c_address: int | None = Field(
+    speed_max_khz: int | None = Field(
         default=None,
-        description="Default I2C address (7-bit, decimal). Use 0xNN syntax in YAML.",
-    )
-    i2c_address_options: list[int] | None = Field(
-        default=None,
-        description="Selectable addresses via ADDR pin / strap (7-bit values).",
-    )
-    i2c_max_clock_khz: int | None = Field(
-        default=None,
-        description="Maximum I2C bus clock the device tolerates, in kHz.",
-    )
-    i2c_pullups_required: bool | None = Field(
-        default=None,
-        description="True if the device does not integrate I2C pull-ups.",
+        description=(
+            "Maximum bus clock the device tolerates, in kHz. Generic across buses; "
+            "interpret as 'kHz' for I²C and SPI, baud rate analogue for UART."
+        ),
     )
 
     # --- SPI ---------------------------------------------------------------
-    spi_max_clock_mhz: float | None = Field(default=None, description="Max SPI clock in MHz.")
     spi_mode: int | None = Field(default=None, ge=0, le=3, description="SPI mode 0–3 (CPOL/CPHA).")
 
     # --- UART --------------------------------------------------------------

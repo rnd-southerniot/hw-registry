@@ -15,13 +15,37 @@
             }
           ],
           "default": null,
-          "description": "Peripheral channel or index (e.g. ADC1 channel 3).",
+          "description": "Peripheral channel or index (e.g. ADC1 channel 7).",
           "title": "Channel"
         },
-        "name": {
-          "description": "Function name (e.g. I2C0_SDA, SPI2_MOSI).",
-          "title": "Name",
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "in",
+                "out",
+                "bidir"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Signal direction relative to the device (in / out / bidir).",
+          "title": "Direction"
+        },
+        "function": {
+          "description": "Function identifier (e.g. gpio, i2c_sda, spi_mosi, adc_in, uart_tx).",
+          "title": "Function",
           "type": "string"
+        },
+        "open_drain": {
+          "default": false,
+          "description": "True if the function is open-drain (e.g. I\u00b2C SDA/SCL).",
+          "title": "Open Drain",
+          "type": "boolean"
         },
         "peripheral": {
           "anyOf": [
@@ -33,12 +57,12 @@
             }
           ],
           "default": null,
-          "description": "Peripheral instance owning this function (e.g. I2C0, SPI2).",
+          "description": "Peripheral instance owning this function (e.g. i2c0, spi2, adc1).",
           "title": "Peripheral"
         }
       },
       "required": [
-        "name"
+        "function"
       ],
       "title": "AltFunction",
       "type": "object"
@@ -108,8 +132,15 @@
     },
     "ContainedPart": {
       "additionalProperties": false,
-      "description": "A component physically integrated into a module (SoC, antenna, memory, etc.).",
+      "description": "A component physically integrated into a module (SoC, antenna, memory, etc.).\n\nNOTE: passive components (caps, resistors, TCXOs) are intentionally NOT\ncataloged in MVP \u2014 the registry only tracks parts with a POC. The\n`passives/...` example in BLUEPRINT.md sec 3.2 is illustrative only;\nreal RAK3172 YAML omits the TCXO entry.\nTODO(prompt-4): validate override keys against resolved parent (out of scope\nfor the model; lives in the bundle resolver where the parent is known).",
       "properties": {
+        "qty": {
+          "default": 1,
+          "description": "Number of instances of this part inside the module.",
+          "minimum": 1,
+          "title": "Qty",
+          "type": "integer"
+        },
         "ref": {
           "description": "Component ref of the contained part (e.g. chips/st/stm32wle5jc@1.0.0).",
           "pattern": "^[a-z]+/[a-z0-9-]+/[a-z0-9-]+(?:@\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?)?$",
@@ -159,7 +190,7 @@
           "description": "Deep-sleep current in \u00b5A.",
           "title": "Sleep Ua"
         },
-        "typical_mA": {
+        "typ_active_mA": {
           "anyOf": [
             {
               "type": "number"
@@ -169,8 +200,8 @@
             }
           ],
           "default": null,
-          "description": "Typical operating current in mA.",
-          "title": "Typical Ma"
+          "description": "Typical active operating current in mA.",
+          "title": "Typ Active Ma"
         }
       },
       "title": "CurrentDraw",
@@ -269,8 +300,21 @@
     },
     "ExternalRefs": {
       "additionalProperties": false,
-      "description": "Distributor and catalog cross-references.",
+      "description": "Distributor, catalog, and SBOM cross-references.",
       "properties": {
+        "cpe": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "CPE 2.3 identifier (e.g. 'cpe:2.3:h:sensirion:sht41:-:*:*:*:*:*:*:*'). SBOM-grade.",
+          "title": "Cpe"
+        },
         "digikey_pn": {
           "anyOf": [
             {
@@ -338,39 +382,8 @@
           "default": null,
           "description": "Octopart canonical URL.",
           "title": "Octopart Url"
-        }
-      },
-      "title": "ExternalRefs",
-      "type": "object"
-    },
-    "FirmwareOption": {
-      "additionalProperties": false,
-      "description": "Pre-flashed firmware variant available from the vendor (e.g. AT-command stack).",
-      "properties": {
-        "description": {
-          "description": "Short summary of what the firmware exposes.",
-          "title": "Description",
-          "type": "string"
         },
-        "name": {
-          "description": "Firmware variant name (e.g. RUI3-LoRaWAN-AT, BlueNRG-stack).",
-          "title": "Name",
-          "type": "string"
-        },
-        "size_kb": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Approximate flash footprint in KB.",
-          "title": "Size Kb"
-        },
-        "source_url": {
+        "purl": {
           "anyOf": [
             {
               "type": "string"
@@ -380,13 +393,70 @@
             }
           ],
           "default": null,
-          "description": "Vendor URL pointing at the firmware download or repo.",
-          "title": "Source Url"
+          "description": "Package URL (purl) per spec (e.g. 'pkg:generic/sensirion/sht41'). SBOM-grade.",
+          "title": "Purl"
+        }
+      },
+      "title": "ExternalRefs",
+      "type": "object"
+    },
+    "FirmwareOption": {
+      "additionalProperties": false,
+      "description": "Pre-flashed firmware variant available from the vendor (e.g. AT-command stack).",
+      "properties": {
+        "at_baud": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Default AT-command UART baud rate (only meaningful for AT firmware).",
+          "title": "At Baud"
+        },
+        "at_format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "UART format for AT mode (e.g. '8N1').",
+          "title": "At Format"
+        },
+        "default": {
+          "default": false,
+          "description": "True if this is the variant shipped from the factory.",
+          "title": "Default",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "Firmware variant name (e.g. rui3, open-stm32wlxx-source).",
+          "title": "Name",
+          "type": "string"
+        },
+        "repo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source repository URL or shorthand (e.g. github.com/RAKWireless/RUI_v3.x).",
+          "title": "Repo"
         }
       },
       "required": [
-        "name",
-        "description"
+        "name"
       ],
       "title": "FirmwareOption",
       "type": "object"
@@ -477,6 +547,19 @@
           "default": null,
           "description": "Outer physical dimensions."
         },
+        "ipc_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "IPC-7351 land-pattern name (e.g. DFN40P150X150X50-4N, LCC50P15X15X25-50N).",
+          "title": "Ipc Name"
+        },
         "pin_count": {
           "anyOf": [
             {
@@ -503,6 +586,14 @@
           "description": "Pin-to-pin pitch in millimetres.",
           "title": "Pitch Mm"
         },
+        "rf_certifications": {
+          "description": "Regulatory certifications attached to this physical package (e.g. FCC, CE, IC, KC). Meaningful for RF modules; left empty for non-RF parts.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Rf Certifications",
+          "type": "array"
+        },
         "type": {
           "description": "Package family (e.g. QFN-32, MSOP-10, LCC-WROOM-1, BGA-484).",
           "title": "Type",
@@ -517,7 +608,7 @@
     },
     "PackageDimensions": {
       "additionalProperties": false,
-      "description": "Outer dimensions of the physical package in millimetres.",
+      "description": "Outer dimensions of the physical package in millimetres.\n\nLong-form names (length / width / height) are intentional. Section 3.2/3.3\nof BLUEPRINT.md uses {x, y, z}; that example is wrong (which is length?).\nOverride recorded in BLUEPRINT.md Appendix A.",
       "properties": {
         "height_mm": {
           "anyOf": [
@@ -571,9 +662,22 @@
           "type": "array"
         },
         "default": {
-          "description": "Default function on cold boot (e.g. GPIO, JTAG_TDI, I2C_SDA).",
+          "description": "Default function on cold boot (e.g. gpio, JTAG_TDI, i2c_sda).",
           "title": "Default",
           "type": "string"
+        },
+        "exposed_as": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "When this pin is re-exposed at a different level (e.g. chip pin PA0 brought out as module pin 'pin1'), the outer-level identifier.",
+          "title": "Exposed As"
         },
         "id": {
           "description": "Pin identifier in the device's native namespace (e.g. GPIO5, PA0).",
@@ -606,7 +710,7 @@
             }
           ],
           "default": null,
-          "description": "Voltage rail powering this pin (e.g. VDDIO, VDDA).",
+          "description": "Voltage rail powering this pin (e.g. VDDIO, VDDA, vdd_io).",
           "title": "Voltage Domain"
         }
       },
@@ -648,10 +752,9 @@
         "status": {
           "description": "POC verification status.",
           "enum": [
-            "experimental",
-            "stable",
-            "production-tested",
-            "stub"
+            "stub",
+            "verified",
+            "production-tested"
           ],
           "title": "Status",
           "type": "string"
@@ -699,6 +802,27 @@
           "description": "Nominal supply voltage in volts.",
           "title": "Nominal V",
           "type": "number"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "enum": [
+                "usb-c",
+                "usb-a",
+                "barrel-jack",
+                "pin-header",
+                "poe",
+                "battery"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the rail comes from (board-level field; irrelevant for chips/sensors).",
+          "title": "Source"
         }
       },
       "required": [
@@ -748,6 +872,20 @@
       },
       "title": "Contains",
       "type": "array"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional paragraph-form description (\u2264 500 chars). Use summary for the one-liner.",
+      "title": "Description"
     },
     "electrical": {
       "$ref": "#/$defs/Electrical",
@@ -807,10 +945,11 @@
     "lifecycle": {
       "description": "Lifecycle stage. Drives deprecation surfacing for downstream consumers.",
       "enum": [
-        "preview",
-        "active",
+        "experimental",
+        "stable",
         "deprecated",
-        "end-of-life"
+        "eol",
+        "archived"
       ],
       "title": "Lifecycle",
       "type": "string"
@@ -843,19 +982,19 @@
       "title": "Revision",
       "type": "string"
     },
-    "rf_certifications": {
-      "description": "Regulatory certifications (e.g. FCC, CE, IC, NCC, MIC).",
-      "items": {
-        "type": "string"
-      },
-      "title": "Rf Certifications",
-      "type": "array"
-    },
     "summary": {
       "description": "One-line human description (\u2264 120 characters).",
       "maxLength": 120,
       "title": "Summary",
       "type": "string"
+    },
+    "tags": {
+      "description": "Free-form tags powering MCP search faceting (e.g. wifi, ble, lorawan, lx7).",
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
     },
     "tested": {
       "$ref": "#/$defs/Tested",

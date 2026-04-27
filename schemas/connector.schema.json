@@ -150,8 +150,21 @@
     },
     "ExternalRefs": {
       "additionalProperties": false,
-      "description": "Distributor and catalog cross-references.",
+      "description": "Distributor, catalog, and SBOM cross-references.",
       "properties": {
+        "cpe": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "CPE 2.3 identifier (e.g. 'cpe:2.3:h:sensirion:sht41:-:*:*:*:*:*:*:*'). SBOM-grade.",
+          "title": "Cpe"
+        },
         "digikey_pn": {
           "anyOf": [
             {
@@ -219,6 +232,19 @@
           "default": null,
           "description": "Octopart canonical URL.",
           "title": "Octopart Url"
+        },
+        "purl": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Package URL (purl) per spec (e.g. 'pkg:generic/sensirion/sht41'). SBOM-grade.",
+          "title": "Purl"
         }
       },
       "title": "ExternalRefs",
@@ -290,10 +316,9 @@
         "status": {
           "description": "POC verification status.",
           "enum": [
-            "experimental",
-            "stable",
-            "production-tested",
-            "stub"
+            "stub",
+            "verified",
+            "production-tested"
           ],
           "title": "Status",
           "type": "string"
@@ -340,6 +365,20 @@
       "default": null,
       "description": "GitHub team or handle responsible for this component.",
       "title": "Code Owner"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional paragraph-form description (\u2264 500 chars). Use summary for the one-liner.",
+      "title": "Description"
     },
     "external_refs": {
       "anyOf": [
@@ -388,10 +427,11 @@
     "lifecycle": {
       "description": "Lifecycle stage. Drives deprecation surfacing for downstream consumers.",
       "enum": [
-        "preview",
-        "active",
+        "experimental",
+        "stable",
         "deprecated",
-        "end-of-life"
+        "eol",
+        "archived"
       ],
       "title": "Lifecycle",
       "type": "string"
@@ -456,6 +496,14 @@
       "maxLength": 120,
       "title": "Summary",
       "type": "string"
+    },
+    "tags": {
+      "description": "Free-form tags powering MCP search faceting (e.g. wifi, ble, lorawan, lx7).",
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
     },
     "tested": {
       "$ref": "#/$defs/Tested",

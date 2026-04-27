@@ -3,8 +3,34 @@
   "$defs": {
     "DriverBinding": {
       "additionalProperties": false,
-      "description": "A per-framework binding describing how to consume the driver in a project.",
+      "description": "A per-framework binding describing how to consume the driver in a project.\n\nMost fields are framework-conditional and optional. Authors populate\nonly what their framework's manifest needs:\n\n- ESP-IDF: ``component`` + ``source`` (Component Manager)\n- Arduino: ``library`` + ``package_index``\n- Zephyr: ``compatible`` + ``binding`` + ``kconfig``\n- MicroPython: ``module`` + ``install``\n\n``tested_with`` is intentionally a list \u2014 drivers get tested against\nmultiple framework versions over time. Section 3.4 of BLUEPRINT.md\nshows it as a single string; that example is wrong (override recorded\nin Appendix A).",
       "properties": {
+        "binding": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Zephyr DT binding path (e.g. dts/bindings/sensor/sensirion,sht4x.yaml).",
+          "title": "Binding"
+        },
+        "compatible": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Zephyr Devicetree `compatible` string (e.g. 'sensirion,sht4x').",
+          "title": "Compatible"
+        },
         "component": {
           "anyOf": [
             {
@@ -30,6 +56,45 @@
           "title": "Framework",
           "type": "string"
         },
+        "header": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Public header file to #include (e.g. sht4x.h).",
+          "title": "Header"
+        },
+        "install": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "MicroPython install command (e.g. 'mip install adafruit-sht4x').",
+          "title": "Install"
+        },
+        "kconfig": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Zephyr Kconfig symbol (e.g. CONFIG_SHT4X).",
+          "title": "Kconfig"
+        },
         "library": {
           "anyOf": [
             {
@@ -44,9 +109,17 @@
           "title": "Library"
         },
         "license": {
-          "description": "SPDX identifier of the upstream driver library (e.g. MIT, Apache-2.0, BSD-3-Clause).",
-          "title": "License",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SPDX identifier of the upstream driver library (e.g. MIT, Apache-2.0, BSD-3-Clause). Optional \u2014 some upstream libraries do not publish a clear license.",
+          "title": "License"
         },
         "module": {
           "anyOf": [
@@ -58,8 +131,34 @@
             }
           ],
           "default": null,
-          "description": "Zephyr/MicroPython module name or DT-compatible string (e.g. 'ti,ads1115').",
+          "description": "MicroPython module name (e.g. adafruit_sht4x).",
           "title": "Module"
+        },
+        "package_index": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Arduino board / library package-index identifier (e.g. 'arduino', 'esp32').",
+          "title": "Package Index"
+        },
+        "sample_call": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "One-line idiomatic call sample (e.g. 'sht4x_get_measurement(dev, &t, &rh);').",
+          "title": "Sample Call"
         },
         "source": {
           "anyOf": [
@@ -75,7 +174,7 @@
           "title": "Source"
         },
         "tested_with": {
-          "description": "Framework versions verified by hand (e.g. ['esp-idf 5.2.1', 'esp-idf 5.3.0']).",
+          "description": "Framework versions verified by hand (e.g. ['esp-idf 5.5', 'arduino-esp32 3.0.1']).",
           "items": {
             "type": "string"
           },
@@ -90,8 +189,7 @@
       },
       "required": [
         "framework",
-        "version_constraint",
-        "license"
+        "version_constraint"
       ],
       "title": "DriverBinding",
       "type": "object"
@@ -127,10 +225,9 @@
         "status": {
           "description": "POC verification status.",
           "enum": [
-            "experimental",
-            "stable",
-            "production-tested",
-            "stub"
+            "stub",
+            "verified",
+            "production-tested"
           ],
           "title": "Status",
           "type": "string"
@@ -155,7 +252,7 @@
       "type": "string"
     },
     "applies_to": {
-      "description": "Component refs this driver supports (sensors, chips, modules).",
+      "description": "Component refs this driver supports (sensors, chips, modules). Unversioned.",
       "items": {
         "pattern": "^[a-z]+/[a-z0-9-]+/[a-z0-9-]+(?:@\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?)?$",
         "type": "string"
@@ -185,6 +282,20 @@
       "description": "GitHub team or handle responsible for this component.",
       "title": "Code Owner"
     },
+    "description": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional paragraph-form description (\u2264 500 chars). Use summary for the one-liner.",
+      "title": "Description"
+    },
     "id": {
       "description": "Slug kind/vendor/part. MUST equal the relative path under library/ minus .yaml.",
       "pattern": "^[a-z]+/[a-z0-9-]+/[a-z0-9-]+$",
@@ -200,10 +311,11 @@
     "lifecycle": {
       "description": "Lifecycle stage. Drives deprecation surfacing for downstream consumers.",
       "enum": [
-        "preview",
-        "active",
+        "experimental",
+        "stable",
         "deprecated",
-        "end-of-life"
+        "eol",
+        "archived"
       ],
       "title": "Lifecycle",
       "type": "string"
@@ -219,6 +331,14 @@
       "maxLength": 120,
       "title": "Summary",
       "type": "string"
+    },
+    "tags": {
+      "description": "Free-form tags powering MCP search faceting (e.g. wifi, ble, lorawan, lx7).",
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
     },
     "tested": {
       "$ref": "#/$defs/Tested",

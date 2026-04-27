@@ -17,8 +17,16 @@ class KicadRefs(Strict):
 
 
 class ExternalRefs(Strict):
-    """Distributor and catalog cross-references."""
+    """Distributor, catalog, and SBOM cross-references."""
 
+    cpe: str | None = Field(
+        default=None,
+        description="CPE 2.3 identifier (e.g. 'cpe:2.3:h:sensirion:sht41:-:*:*:*:*:*:*:*'). SBOM-grade.",  # noqa: E501
+    )
+    purl: str | None = Field(
+        default=None,
+        description="Package URL (purl) per spec (e.g. 'pkg:generic/sensirion/sht41'). SBOM-grade.",
+    )
     octopart_url: HttpUrl | None = Field(default=None, description="Octopart canonical URL.")
     nexar_part_id: str | None = Field(default=None, description="Nexar GraphQL part ID.")
     mouser_pn: str | None = Field(default=None, description="Mouser part number.")

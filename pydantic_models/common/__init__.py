@@ -2,7 +2,7 @@
 
 from .assets import Asset, AssetBundle, Datasheet
 from .discovery import Discovery, UsbId
-from .electrical import CurrentDraw, Electrical, LogicSpec, VccSpec
+from .electrical import CurrentDraw, Electrical, LogicSpec, VccSource, VccSpec
 from .identifiable import (
     COMPONENT_ID_REGEX,
     COMPONENT_REF_REGEX,
@@ -16,7 +16,7 @@ from .identifiable import (
 )
 from .interface import Interface, InterfaceType
 from .package import Package, PackageDimensions
-from .pin import AltFunction, Pin
+from .pin import AltFunction, Pin, PinDirection
 from .refs import ExternalRefs, KicadRefs
 
 __all__ = [
@@ -41,9 +41,11 @@ __all__ = [
     "Package",
     "PackageDimensions",
     "Pin",
+    "PinDirection",
     "Strict",
     "Tested",
     "TestedStatus",
     "UsbId",
+    "VccSource",
     "VccSpec",
 ]

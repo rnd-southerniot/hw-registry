@@ -15,13 +15,37 @@
             }
           ],
           "default": null,
-          "description": "Peripheral channel or index (e.g. ADC1 channel 3).",
+          "description": "Peripheral channel or index (e.g. ADC1 channel 7).",
           "title": "Channel"
         },
-        "name": {
-          "description": "Function name (e.g. I2C0_SDA, SPI2_MOSI).",
-          "title": "Name",
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "in",
+                "out",
+                "bidir"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Signal direction relative to the device (in / out / bidir).",
+          "title": "Direction"
+        },
+        "function": {
+          "description": "Function identifier (e.g. gpio, i2c_sda, spi_mosi, adc_in, uart_tx).",
+          "title": "Function",
           "type": "string"
+        },
+        "open_drain": {
+          "default": false,
+          "description": "True if the function is open-drain (e.g. I\u00b2C SDA/SCL).",
+          "title": "Open Drain",
+          "type": "boolean"
         },
         "peripheral": {
           "anyOf": [
@@ -33,12 +57,12 @@
             }
           ],
           "default": null,
-          "description": "Peripheral instance owning this function (e.g. I2C0, SPI2).",
+          "description": "Peripheral instance owning this function (e.g. i2c0, spi2, adc1).",
           "title": "Peripheral"
         }
       },
       "required": [
-        "name"
+        "function"
       ],
       "title": "AltFunction",
       "type": "object"
@@ -203,7 +227,7 @@
           "description": "Deep-sleep current in \u00b5A.",
           "title": "Sleep Ua"
         },
-        "typical_mA": {
+        "typ_active_mA": {
           "anyOf": [
             {
               "type": "number"
@@ -213,8 +237,8 @@
             }
           ],
           "default": null,
-          "description": "Typical operating current in mA.",
-          "title": "Typical Ma"
+          "description": "Typical active operating current in mA.",
+          "title": "Typ Active Ma"
         }
       },
       "title": "CurrentDraw",
@@ -375,8 +399,21 @@
     },
     "ExternalRefs": {
       "additionalProperties": false,
-      "description": "Distributor and catalog cross-references.",
+      "description": "Distributor, catalog, and SBOM cross-references.",
       "properties": {
+        "cpe": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "CPE 2.3 identifier (e.g. 'cpe:2.3:h:sensirion:sht41:-:*:*:*:*:*:*:*'). SBOM-grade.",
+          "title": "Cpe"
+        },
         "digikey_pn": {
           "anyOf": [
             {
@@ -444,6 +481,19 @@
           "default": null,
           "description": "Octopart canonical URL.",
           "title": "Octopart Url"
+        },
+        "purl": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Package URL (purl) per spec (e.g. 'pkg:generic/sensirion/sht41'). SBOM-grade.",
+          "title": "Purl"
         }
       },
       "title": "ExternalRefs",
@@ -717,9 +767,22 @@
           "type": "array"
         },
         "default": {
-          "description": "Default function on cold boot (e.g. GPIO, JTAG_TDI, I2C_SDA).",
+          "description": "Default function on cold boot (e.g. gpio, JTAG_TDI, i2c_sda).",
           "title": "Default",
           "type": "string"
+        },
+        "exposed_as": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "When this pin is re-exposed at a different level (e.g. chip pin PA0 brought out as module pin 'pin1'), the outer-level identifier.",
+          "title": "Exposed As"
         },
         "id": {
           "description": "Pin identifier in the device's native namespace (e.g. GPIO5, PA0).",
@@ -752,7 +815,7 @@
             }
           ],
           "default": null,
-          "description": "Voltage rail powering this pin (e.g. VDDIO, VDDA).",
+          "description": "Voltage rail powering this pin (e.g. VDDIO, VDDA, vdd_io).",
           "title": "Voltage Domain"
         }
       },
@@ -794,10 +857,9 @@
         "status": {
           "description": "POC verification status.",
           "enum": [
-            "experimental",
-            "stable",
-            "production-tested",
-            "stub"
+            "stub",
+            "verified",
+            "production-tested"
           ],
           "title": "Status",
           "type": "string"
@@ -882,6 +944,27 @@
           "description": "Nominal supply voltage in volts.",
           "title": "Nominal V",
           "type": "number"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "enum": [
+                "usb-c",
+                "usb-a",
+                "barrel-jack",
+                "pin-header",
+                "poe",
+                "battery"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the rail comes from (board-level field; irrelevant for chips/sensors).",
+          "title": "Source"
         }
       },
       "required": [
@@ -928,6 +1011,20 @@
       "default": null,
       "description": "GitHub team or handle responsible for this component.",
       "title": "Code Owner"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional paragraph-form description (\u2264 500 chars). Use summary for the one-liner.",
+      "title": "Description"
     },
     "discovery": {
       "$ref": "#/$defs/Discovery",
@@ -993,10 +1090,11 @@
     "lifecycle": {
       "description": "Lifecycle stage. Drives deprecation surfacing for downstream consumers.",
       "enum": [
-        "preview",
-        "active",
+        "experimental",
+        "stable",
         "deprecated",
-        "end-of-life"
+        "eol",
+        "archived"
       ],
       "title": "Lifecycle",
       "type": "string"
@@ -1045,6 +1143,14 @@
       "maxLength": 120,
       "title": "Summary",
       "type": "string"
+    },
+    "tags": {
+      "description": "Free-form tags powering MCP search faceting (e.g. wifi, ble, lorawan, lx7).",
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
     },
     "tested": {
       "$ref": "#/$defs/Tested",
