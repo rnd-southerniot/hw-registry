@@ -8,7 +8,7 @@ hardware library — boards, modules, chips, sensors, drivers, connectors.
 | Audience            | How                                                          |
 |---------------------|--------------------------------------------------------------|
 | **Humans**          | Doc site (MkDocs Material), one auto-generated page per part |
-| **AI coding agents**| MCP server `hwlib-mcp` (PyPI + `ghcr.io/<your-github-username>/hwlib-mcp`) |
+| **AI coding agents**| MCP server `hwlib-mcp` (PyPI + `ghcr.io/rnd-southerniot/hwlib-mcp`) |
 | **KiCad / PCB**     | Symbol / footprint / 3D refs in each component YAML          |
 | **BOM exporters**   | JLCPCB CSV, IPC-2581, CycloneDX HBOM 1.7                     |
 
@@ -27,7 +27,7 @@ tests/        unit, integration, e2e
 ## Quickstart for contributors
 
 ```bash
-git clone git@github.com:<your-github-username>/hw-registry.git
+git clone git@github.com:rnd-southerniot/hw-registry.git
 cd hw-registry
 uv venv && source .venv/bin/activate
 uv pip install -e ".[dev]"
@@ -60,7 +60,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the full execution contract and
 ```bash
 claude mcp add hwlib uvx hwlib-mcp                         # PyPI / stdio
 # or
-docker run -d -p 8080:8080 ghcr.io/<your-github-username>/hwlib-mcp:latest \
+docker run -d -p 8080:8080 ghcr.io/rnd-southerniot/hwlib-mcp:latest \
   --http --port 8080
 claude mcp add hwlib --transport http http://localhost:8080
 ```
