@@ -36,6 +36,21 @@ Built bundle      dist/                ← GENERATED. Never commit by hand.
 Schemas are produced by `python -m tools.generate_schemas` from the Pydantic
 models. CI fails the PR if `schemas/` drifts from the models.
 
+**Structure vs. content.** `pydantic_models/` is canonical for **structure** —
+what fields exist, what types they have, what's required. `library/**/*.yaml`
+is canonical for **content** — the actual values for each component. Both are
+authoritative, in their own domain. When they disagree:
+
+- If a YAML field is missing, malformed, or has a wrong type → **the YAML is wrong**, fix the YAML.
+- If a field exists in YAML that the model rejects, but the field is legitimate
+  hardware reality → **the model is wrong**, update the Pydantic model and
+  regenerate schemas. Do not work around it with `extra="allow"`.
+- If a model field has no real-world counterpart in any component → **the model
+  is wrong**, remove the field.
+
+Schemas under `schemas/` and bundles under `dist/` are derived artifacts and
+never authoritative. Never hand-edit them; never use them to settle disputes.
+
 ---
 
 ## 3. Naming rule (slug == path)
