@@ -32,7 +32,7 @@ class CoreSpec(Strict):
 class Chip(Identifiable):
     """A silicon device — MCU, SoC, transceiver, peripheral IC."""
 
-    kind: Literal["chip"] = "chip"  # type: ignore[assignment]
+    kind: Literal["chip"] = "chip"
 
     vendor: str = Field(description="Vendor slug from Zephyr's vendor-prefixes.txt.")
     manufacturer_part_number: str = Field(description="Manufacturer P/N (e.g. STM32WLE5JCI6).")

@@ -51,7 +51,7 @@ class DriverBinding(Strict):
 class Driver(Identifiable):
     """A driver — pointer + version constraints across one or more frameworks."""
 
-    kind: Literal["driver"] = "driver"  # type: ignore[assignment]
+    kind: Literal["driver"] = "driver"
 
     applies_to: list[ComponentRef] = Field(
         description="Component refs this driver supports (sensors, chips, modules).",

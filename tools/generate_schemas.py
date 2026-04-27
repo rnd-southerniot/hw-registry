@@ -14,9 +14,9 @@ from typing import Any
 
 import click
 
-from pydantic_models import Board, Chip, Connector, Driver, Module, Sensor
+from pydantic_models import Board, Chip, Connector, Driver, Identifiable, Module, Sensor
 
-KIND_MODELS: dict[str, type] = {
+KIND_MODELS: dict[str, type[Identifiable]] = {
     "board": Board,
     "module": Module,
     "chip": Chip,
@@ -31,7 +31,7 @@ DEFAULT_OUT = REPO_ROOT / "schemas"
 SPDX_HEADER = "SPDX-License-Identifier: CC-BY-4.0"
 
 
-def build_schema(model: type) -> dict[str, Any]:
+def build_schema(model: type[Identifiable]) -> dict[str, Any]:
     """Return the validation-mode JSON Schema for *model* with an SPDX header injected."""
     schema = model.model_json_schema(mode="validation")
     return {"$comment": SPDX_HEADER, **schema}

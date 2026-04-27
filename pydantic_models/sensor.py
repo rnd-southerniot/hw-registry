@@ -65,7 +65,7 @@ class SensorConstraints(Strict):
 class Sensor(Identifiable):
     """A sensor or analog front-end IC."""
 
-    kind: Literal["sensor"] = "sensor"  # type: ignore[assignment]
+    kind: Literal["sensor"] = "sensor"
 
     vendor: str = Field(description="Vendor slug from Zephyr's vendor-prefixes.txt.")
     manufacturer_part_number: str = Field(description="Manufacturer P/N.")

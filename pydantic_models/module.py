@@ -46,7 +46,7 @@ class FirmwareOption(Strict):
 class Module(Identifiable):
     """An RF / SoM module exposing pads or pins, containing one or more chips."""
 
-    kind: Literal["module"] = "module"  # type: ignore[assignment]
+    kind: Literal["module"] = "module"
 
     vendor: str = Field(description="Vendor slug from Zephyr's vendor-prefixes.txt.")
     manufacturer_part_number: str = Field(description="Manufacturer P/N as printed on the module.")

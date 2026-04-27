@@ -32,7 +32,7 @@ class ConnectorPin(Strict):
 class Connector(Identifiable):
     """A physical mating connector."""
 
-    kind: Literal["connector"] = "connector"  # type: ignore[assignment]
+    kind: Literal["connector"] = "connector"
 
     vendor: str = Field(description="Vendor slug.")
     manufacturer_part_number: str = Field(description="Manufacturer P/N (e.g. JST-PH 2-pin SMD top entry).")

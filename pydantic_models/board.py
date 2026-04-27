@@ -63,7 +63,7 @@ ComponentRef = Annotated[str, Field(pattern=COMPONENT_REF_REGEX)]
 class Board(Identifiable):
     """A physical board — dev kit, breakout, custom PCB."""
 
-    kind: Literal["board"] = "board"  # type: ignore[assignment]
+    kind: Literal["board"] = "board"
 
     vendor: str = Field(description="Vendor slug from Zephyr's vendor-prefixes.txt.")
     manufacturer_part_number: str = Field(description="Manufacturer P/N as printed on the board / box.")
