@@ -763,3 +763,11 @@ Section 3.1 is the labeled "Board example" block, used to communicate the overal
 
 - **Peripherals are flat int counts** (`spi: 4`, `i2c: 2`), not nested dicts with `count / max_clock_mhz / user_usable`. The flat form aligns with Prompt 3's text ("peripherals counts") and is sufficient for the MVP. The nested form is reserved for post-MVP, when the conflict checker grows peripheral-allocation rules — at which point distinguishing "4 SPI controllers, 2 user-usable" from "4 SPI controllers" actually matters.
 - **`build.flash_mb`** (model), not `build.flash_size_mb` (blueprint). Pure naming preference; the model wins.
+
+### AltFunction override shorthand semantics
+
+When an `overrides.pins[].alt_functions:` shorthand string does not match any `AltFunction` on the resolved parent, the resolver coerces it to `{function: <name>}` and emits a build-time `AltFunctionShorthandWarning` (a `UserWarning` subclass) — **not a hard error**. Modules legitimately extend their parent's function vocabulary; RAK3172 exposes vendor-specific RUI3 AT-firmware functions on pins whose underlying STM32WLE5JC `AltFunction` table does not define them. A hard error would block a legitimate extension. CI logs the warning; PR reviewers eyeball it for typos. A typo PR shows the warning, the reviewer asks "did you mean `uart_rx`?", author fixes, warning self-clears. Legitimate extensions show the warning indefinitely until the parent chip YAML is enriched with the new function — at which point shorthand starts resolving cleanly.
+
+Structural type errors — an `alt_functions` entry that is neither string nor dict — DO raise `MismatchedOverrideShorthand`. That is a YAML-shape bug, distinct from a function-vocabulary extension.
+
+The on-disk bundle (`dist/library.json`) only ever contains fully-realized `AltFunction` dicts — shorthand never escapes the YAML layer. This contract supersedes the original strict design recorded in earlier drafts of `pydantic_models/module.py`'s TODO comment.
