@@ -47,6 +47,23 @@ async def test_hwlib_search_kind_filter(mcp_client: Client) -> None:
 
 
 @pytest.mark.asyncio
+async def test_hwlib_search_synthesizes_vendor_for_drivers(mcp_client: Client) -> None:
+    """Driver records have no `vendor` field on the model — search results
+    still expose it by deriving from the slug's middle segment so agents
+    don't see a confusing `vendor: None` next to populated values."""
+    result = await mcp_client.call_tool("hwlib_search", {"query": "SHT41", "kind": "driver"})
+    drivers = result.data["results"]
+    assert any(r["id"] == "drivers/sensirion/sht41" for r in drivers)
+    sht41_driver = next(r for r in drivers if r["id"] == "drivers/sensirion/sht41")
+    assert sht41_driver["vendor"] == "sensirion"
+
+    # Sanity: ADS1115 driver too.
+    result_ads = await mcp_client.call_tool("hwlib_search", {"query": "ADS1115", "kind": "driver"})
+    ads_driver = next(r for r in result_ads.data["results"] if r["id"] == "drivers/ti/ads1115")
+    assert ads_driver["vendor"] == "ti"
+
+
+@pytest.mark.asyncio
 async def test_hwlib_search_limit_capped(mcp_client: Client) -> None:
     """limit > 20 must be silently capped at 20 (token-discipline contract)."""
     result = await mcp_client.call_tool("hwlib_search", {"query": "i2c", "limit": 1000})

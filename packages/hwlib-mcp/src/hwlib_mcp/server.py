@@ -378,9 +378,16 @@ def build_server(data_dir: Path) -> FastMCP:
     # has a Tool counterpart (or is reachable via hwlib_get) — never
     # Resource-only, that would strand non-Claude-Code users.
 
-    @mcp.resource("hwlib://component/{id}")
+    @mcp.resource("hwlib://component/{id*}")
     async def component_resource(id: str) -> str:  # noqa: A002
-        """Full resolved record for a single component, JSON-serialized."""
+        """Full resolved record for a single component, JSON-serialized.
+
+        URI template uses ``{id*}`` (wildcard path parameter) so the
+        slug's slashes — ``sensors/sensirion/sht41`` — are captured as
+        a single id, not interpreted as path segments.
+        """
+        if not data.bundle_present(data_dir):
+            return json.dumps(errors.bundle_missing(str(data_dir)), indent=2)
         record = data.get_record(data_dir, id)
         if record is None:
             sugg = suggest_close_ids(id, data.all_ids(data_dir), n=3)
@@ -390,6 +397,8 @@ def build_server(data_dir: Path) -> FastMCP:
     @mcp.resource("hwlib://catalog/index")
     async def catalog_index() -> str:
         """High-level catalog summary: counts per kind plus {id, kind, summary} per component."""
+        if not data.bundle_present(data_dir):
+            return json.dumps(errors.bundle_missing(str(data_dir)), indent=2)
         return json.dumps(data.index_summary(data_dir), indent=2, sort_keys=True)
 
     @mcp.resource("hwlib://schema/{kind}")

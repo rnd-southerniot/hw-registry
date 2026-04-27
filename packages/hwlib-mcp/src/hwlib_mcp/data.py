@@ -36,6 +36,24 @@ def bundle_present(data_dir: Path) -> bool:
     return (data_dir / "library.sqlite").is_file()
 
 
+def _summary_vendor(component_id: str, stored_vendor: str | None) -> str | None:
+    """Return the vendor for a search/list summary record.
+
+    Drivers carry no `vendor` field on the model by design (their YAML
+    is CC-BY-4.0 metadata, not a part datasheet). The slug structure
+    `kind/vendor/part` is authoritative — synthesize from there so search
+    results don't show a confusing `vendor: None` for drivers next to
+    populated values for sensors/boards/modules. Pure derivation; no
+    field added to the model.
+    """
+    if stored_vendor is not None:
+        return stored_vendor
+    parts = component_id.split("/")
+    if len(parts) >= 3 and parts[1]:
+        return parts[1]
+    return None
+
+
 def _connect(data_dir: Path) -> sqlite3.Connection:
     return sqlite3.connect(data_dir / "library.sqlite")
 
@@ -70,7 +88,7 @@ def search(
     with _connect(data_dir) as conn:
         rows = conn.execute(sql, params).fetchall()
     return [
-        {"id": rid, "kind": rkind, "summary": rsummary, "vendor": rvendor}
+        {"id": rid, "kind": rkind, "summary": rsummary, "vendor": _summary_vendor(rid, rvendor)}
         for rid, rkind, rsummary, rvendor in rows
     ]
 
@@ -109,7 +127,14 @@ def list_components(
                 record, voltage_compatible_with
             ):
                 continue
-        matched.append({"id": rid, "kind": rkind, "summary": rsummary, "vendor": rvendor})
+        matched.append(
+            {
+                "id": rid,
+                "kind": rkind,
+                "summary": rsummary,
+                "vendor": _summary_vendor(rid, rvendor),
+            }
+        )
 
     total = len(matched)
     offset = (page - 1) * page_size
