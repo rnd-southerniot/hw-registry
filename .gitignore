@@ -50,3 +50,4 @@ secrets/
 
 # --- Build outputs we never commit ---------------------------------------
 schemas/.cache/
+/docs/components/

@@ -16,6 +16,10 @@ repos:
       - id: check-merge-conflict
       - id: check-yaml
         # Default rejects multi-document YAML, which is what we want.
+        # --unsafe permits custom YAML tags (mkdocs.yml uses
+        # `!!python/name:pymdownx.superfences.fence_code_format` for the
+        # Material-mermaid integration).
+        args: ['--unsafe']
       - id: check-added-large-files
         args: ["--maxkb=500", "--enforce-all"]
 

@@ -10,7 +10,7 @@
 #   make fmt         # ruff format + ruff check --fix
 #   make clean       # remove generated artifacts and caches
 
-.PHONY: help install schema validate test lint fmt clean
+.PHONY: help install schema validate bundle conflicts mcp-install mcp-run mcp-test image compose-up compose-down compose-logs docs-deps docs-build docs-serve test lint fmt clean
 
 PYTHON ?= python
 UV ?= uv
@@ -58,6 +58,17 @@ compose-down:  ## Stop and remove the compose-managed hwlib-mcp container
 
 compose-logs:  ## Tail hwlib-mcp container logs
 	docker compose logs -f hwlib-mcp
+
+# --- Docs site ----------------------------------------------------------
+
+docs-deps:  ## Install docs build dependencies (mkdocs + plugins)
+	$(UV) pip install -r docs/requirements.txt
+
+docs-build: bundle docs-deps  ## Build the doc site to ./site (rebuilds bundle first)
+	mkdocs build --strict
+
+docs-serve: bundle docs-deps  ## Live-preview the doc site at http://127.0.0.1:8000/
+	mkdocs serve
 
 test:  ## Run pytest
 	$(PYTHON) -m pytest -q
