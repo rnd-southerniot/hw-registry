@@ -1,0 +1,245 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Job IDs below are wired into branch protection in Phase 3 — do not rename
+# without updating .github/branch-protection (or `gh api PUT
+# /repos/.../branches/main/protection ...`).
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+  pages: write       # for deploy-docs
+  id-token: write    # for deploy-docs (GitHub Pages OIDC)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # PR runs auto-cancel each other (rapid push wins). Main runs don't.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: '**/pyproject.toml'
+      - name: Install uv
+        # Local pre-commit hooks (validate-slugs, check-schemas-synced) call
+        # `uv run --no-sync python -m tools.X` — they need an existing venv,
+        # not an autosynced one. Bootstrap uv + venv before pre-commit runs.
+        run: pip install uv
+      - name: Create venv with project deps
+        run: |
+          uv venv --python 3.13
+          uv pip install -e ".[dev]"
+      - name: Cache pre-commit hook environments
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Run pre-commit on all files
+        run: pre-commit run --all-files --show-diff-on-failure
+
+  schema-validate:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: '**/pyproject.toml'
+      - run: pip install -e ".[dev]"
+      - name: Regenerate schemas (fail on drift)
+        run: |
+          python -m tools.generate_schemas
+          git diff --exit-code schemas/
+      - name: Schema-sync backstop
+        run: python -m tools.check_schemas_synced
+
+  validate-semantic:
+    runs-on: ubuntu-latest
+    needs: schema-validate
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: '**/pyproject.toml'
+      - run: pip install -e ".[dev]"
+      - name: Run all semantic validators
+        # slug-equals-path, refs-resolve, inheritance-cycle
+        run: python -m tools.validate all
+
+  test-root:
+    runs-on: ubuntu-latest
+    needs: schema-validate
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: '**/pyproject.toml'
+      - run: pip install -e ".[dev]"
+      - run: pytest tests/ -v --cov=tools --cov=pydantic_models --cov-report=xml
+
+  test-mcp:
+    runs-on: ubuntu-latest
+    needs: test-root
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: '**/pyproject.toml'
+      - name: Install root + hwlib-mcp (both editable; conftest imports tools.builder)
+        run: |
+          pip install -e ".[dev]"
+          pip install -e "./packages/hwlib-mcp[dev]"
+      - name: Run hwlib-mcp pytest
+        working-directory: packages/hwlib-mcp
+        run: pytest -v
+
+  build-bundle:
+    runs-on: ubuntu-latest
+    needs: [validate-semantic, test-root]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: '**/pyproject.toml'
+      - run: pip install -e ".[dev]"
+      - name: Build bundle (deterministic via SOURCE_DATE_EPOCH)
+        # Same commit -> same bundle, even on retries.
+        run: |
+          export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
+          python -m tools.builder --out dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bundle
+          path: dist/
+          retention-days: 7
+
+  build-docs:
+    runs-on: ubuntu-latest
+    needs: build-bundle
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: '**/pyproject.toml'
+      - uses: actions/download-artifact@v4
+        with:
+          name: bundle
+          path: dist/
+      - run: pip install -r docs/requirements.txt
+      - run: mkdocs build --strict
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: site/
+          retention-days: 7
+
+  build-image:
+    runs-on: ubuntu-latest
+    needs: build-bundle
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: bundle
+          path: dist/
+      - uses: docker/setup-buildx-action@v3
+      - name: Build hwlib-mcp:ci (no push; load into local daemon for smoke test)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: packages/hwlib-mcp/Dockerfile
+          tags: hwlib-mcp:ci
+          push: false
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test — Python import works inside the image
+        # /health probe needs a running server; defer that to release tests.
+        run: |
+          docker run --rm \
+            --entrypoint /usr/bin/python \
+            hwlib-mcp:ci \
+            -c 'import hwlib_mcp; print("import ok")'
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks (binary; no org-license requirement)
+        # gitleaks-action@v2 requires a GITLEAKS_LICENSE for org accounts;
+        # the binary itself is free. Pinned to the same version as
+        # .pre-commit-config.yaml's gitleaks hook.
+        run: |
+          GITLEAKS_VERSION=8.30.0
+          BASE_URL="https://github.com/gitleaks/gitleaks/releases/download"
+          ARCHIVE="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSL "${BASE_URL}/v${GITLEAKS_VERSION}/${ARCHIVE}" -o /tmp/gl.tar.gz
+          tar -xzf /tmp/gl.tar.gz -C /tmp
+          sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+      - name: Scan repo + history
+        run: gitleaks detect --source . --redact --verbose
+
+  deploy-docs:
+    runs-on: ubuntu-latest
+    needs: [build-docs, build-image, test-mcp, validate-semantic]
+    # Only push-to-main triggers a deploy. PR runs and workflow_dispatch
+    # from non-main do not deploy.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: site/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+      - id: deployment
+        uses: actions/deploy-pages@v4

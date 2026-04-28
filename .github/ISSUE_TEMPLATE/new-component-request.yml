@@ -1,0 +1,48 @@
+name: New component request
+description: Propose adding a new board / module / sensor / driver / chip / connector
+labels: ["enhancement", "new-component"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - board
+        - module
+        - sensor
+        - driver
+        - chip
+        - connector
+    validations:
+      required: true
+  - type: input
+    id: manufacturer_part_number
+    attributes:
+      label: Manufacturer part number
+      placeholder: e.g. SHT41-AD1B
+    validations:
+      required: true
+  - type: input
+    id: datasheet_url
+    attributes:
+      label: Datasheet URL
+      description: Manufacturer's primary URL (we'll add the archive URL during PR review)
+    validations:
+      required: true
+  - type: textarea
+    id: intended_use_case
+    attributes:
+      label: Intended use case
+      description: Where will this be deployed? Why does the registry need it?
+    validations:
+      required: true
+  - type: dropdown
+    id: poc_planned
+    attributes:
+      label: POC status
+      options:
+        - already-shipped
+        - planned-this-quarter
+        - exploratory
+    validations:
+      required: true

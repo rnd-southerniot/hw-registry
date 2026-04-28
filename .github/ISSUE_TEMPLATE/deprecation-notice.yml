@@ -1,0 +1,36 @@
+name: Deprecation notice
+description: Mark a component as EOL, superseded, or otherwise deprecated
+labels: ["deprecation"]
+body:
+  - type: input
+    id: component_id
+    attributes:
+      label: Component ID
+      placeholder: kind/vendor/part
+    validations:
+      required: true
+  - type: dropdown
+    id: reason
+    attributes:
+      label: Reason
+      options:
+        - eol            # manufacturer end-of-life
+        - superseded     # newer revision available
+        - security       # known vulnerability
+        - quality        # POC failure or field reliability
+    validations:
+      required: true
+  - type: input
+    id: replacement_id
+    attributes:
+      label: Replacement component
+      description: Optional — leave blank if no replacement exists
+    validations:
+      required: false
+  - type: textarea
+    id: timeline
+    attributes:
+      label: Timeline
+      description: When does deprecation take effect? When is removal scheduled?
+    validations:
+      required: true

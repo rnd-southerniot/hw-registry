@@ -1,0 +1,18 @@
+# CODEOWNERS for rnd-southerniot/hw-registry.
+#
+# GitHub validates this file at Settings → Code and automation → Code owners.
+# If `@rnd-southerniot` doesn't resolve to a real user/team, GitHub will
+# silently ignore the rule and surface a validation error in repo settings.
+# In that case, switch to a specific account (e.g. `@arif-southern`) or
+# create a team like `@rnd-southerniot/maintainers`.
+
+# Repository default
+*                           @rnd-southerniot
+
+# Source-of-truth and structural surfaces — explicit for clarity even though
+# the wildcard above already covers them.
+/library/                   @rnd-southerniot
+/pydantic_models/           @rnd-southerniot
+/schemas/                   @rnd-southerniot
+/.github/                   @rnd-southerniot
+/docs/internal/             @rnd-southerniot

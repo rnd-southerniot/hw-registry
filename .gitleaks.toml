@@ -1,0 +1,14 @@
+# gitleaks configuration for hw-registry.
+#
+# Inherits gitleaks' default rule set (AWS keys, GitHub tokens, generic
+# private-key patterns, etc.). We don't redefine rules here — only add
+# narrow allowlists for known false positives.
+
+title = "hw-registry gitleaks config"
+
+[allowlist]
+description = "Project-wide allowlist for known false positives."
+paths = [
+    '''^LICENSE$''',
+    '''^\.gitleaks\.toml$''',
+]

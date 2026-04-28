@@ -1,0 +1,38 @@
+name: Component bug
+description: Report a defect in an existing component (wrong pin map, bad spec, broken link, etc.)
+labels: ["bug", "component"]
+body:
+  - type: input
+    id: component_id
+    attributes:
+      label: Component ID
+      description: e.g. sensors/sensirion/sht41
+      placeholder: kind/vendor/part
+    validations:
+      required: true
+  - type: input
+    id: affected_version
+    attributes:
+      label: Affected revision
+      description: e.g. 1.0.0
+    validations:
+      required: false
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: Reproduction steps
+      description: Commands run, files inspected, what surfaced the bug
+    validations:
+      required: false
