@@ -102,3 +102,11 @@ repos:
         language: system
         pass_filenames: false
         files: ^library/.*\.yaml$
+      - id: check-schemas-synced
+        name: check-schemas-synced
+        entry: uv run --no-sync python -m tools.check_schemas_synced
+        language: system
+        pass_filenames: false
+        # Fire when either side of the contract changes — model edits OR
+        # hand-edits to schemas/ both need verification that they match.
+        files: ^(pydantic_models/|schemas/).*\.(py|json)$
