@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 from . import data
 from .server import build_server
@@ -29,6 +30,24 @@ def _resolve_data_dir() -> Path:
     return repo_root / "dist"
 
 
+def build_run_kwargs(args: argparse.Namespace) -> dict[str, Any]:
+    """Translate parsed CLI args into kwargs for ``server.run()``.
+
+    Pure function so the host-resolution decision is unit-testable without
+    spinning up a server. Loopback-only HTTP serves no use case for MCP
+    (stdio is the loopback equivalent), so when ``--http`` is set without
+    an explicit ``--host`` the default is ``0.0.0.0`` — externally
+    reachable, matching uvicorn / gunicorn / flask CLI conventions.
+    """
+    if args.http:
+        return {
+            "transport": "streamable-http",
+            "host": args.host if args.host is not None else "0.0.0.0",
+            "port": args.port,
+        }
+    return {}
+
+
 def main() -> None:
     """CLI entrypoint."""
     parser = argparse.ArgumentParser(
@@ -45,6 +64,15 @@ def main() -> None:
         type=int,
         default=8080,
         help="Port for --http mode (default 8080).",
+    )
+    parser.add_argument(
+        "--host",
+        default=None,
+        help=(
+            "Interface to bind in --http mode. Defaults to 0.0.0.0 "
+            "(externally reachable) when --http is set; ignored otherwise. "
+            "Pass --host 127.0.0.1 to restrict to loopback."
+        ),
     )
     parser.add_argument(
         "--log-level",
@@ -73,12 +101,13 @@ def main() -> None:
         )
         sys.exit(2)
 
-    server = build_server(data_dir)
+    if not args.http and args.host is not None:
+        # Loud rather than silent — operators passing --host without --http
+        # almost always meant to enable HTTP mode and forgot the flag.
+        sys.stderr.write("warning: --host has no effect without --http; ignoring\n")
 
-    if args.http:
-        server.run(transport="streamable-http", port=args.port)
-    else:
-        server.run()
+    server = build_server(data_dir)
+    server.run(**build_run_kwargs(args))
 
 
 if __name__ == "__main__":
