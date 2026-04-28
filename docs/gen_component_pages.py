@@ -534,10 +534,18 @@ RENDERERS = {
 }
 
 
-# --- Emit pages (runs at module-import time when mkdocs-gen-files loads
-#     this script during the build). Don't import this module from
-#     application code — `mkdocs_gen_files.open()` outside a real build
-#     context will fall back to writing real files relative to cwd.
+# --- Emit pages -------------------------------------------------------
+#
+# Runs at module-import time. mkdocs-gen-files IMPORTS this script via its
+# loader (not as __main__), so the loops below execute on import.
+#
+# DO NOT wrap them in `if __name__ == "__main__":` — that silently disables
+# emission and the site builds with zero component pages, surfaced only as
+# a "components/index.md not found" warning during build.
+#
+# DO NOT import this module from application code either: outside a real
+# mkdocs build context, mkdocs_gen_files.open() falls back to writing real
+# files relative to cwd. docs/components/ is gitignored as a safety net.
 
 KIND_LABELS = {
     "board": "Boards",

@@ -16,9 +16,11 @@ repos:
       - id: check-merge-conflict
       - id: check-yaml
         # Default rejects multi-document YAML, which is what we want.
-        # --unsafe permits custom YAML tags (mkdocs.yml uses
-        # `!!python/name:pymdownx.superfences.fence_code_format` for the
-        # Material-mermaid integration).
+        # --unsafe permits the !!python/name: tag used by pymdownx.superfences
+        # in mkdocs.yml. Code review on every PR is the mitigation against
+        # malicious YAML; library/**/*.yaml validation runs through
+        # check-jsonschema, not check-yaml, so the safe-loader path is preserved
+        # for the data surface.
         args: ['--unsafe']
       - id: check-added-large-files
         args: ["--maxkb=500", "--enforce-all"]

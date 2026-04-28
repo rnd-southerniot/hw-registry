@@ -67,6 +67,10 @@ markdown_extensions:
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
 
+# mkdocs-literate-nav was tried and removed: its SUMMARY.md (emitted by
+# gen-files) leaked past exclude_docs (gen-files writes after the file-
+# collection filter runs), publishing /SUMMARY/. MkDocs's default file-
+# tree nav + section-index produces the same UX without the leak.
 plugins:
   - search
   - macros:
