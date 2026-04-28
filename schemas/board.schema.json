@@ -571,7 +571,7 @@
     },
     "Peripherals": {
       "additionalProperties": false,
-      "description": "Counts of peripheral instances exposed by the board's main SoC.",
+      "description": "Counts of peripheral instances exposed by the board's main SoC.\n\nFlat int form is intentional. BLUEPRINT.md sec 3.1 shows a richer\nnested shape (``spi: { count: 4, max_clock_mhz: 80, user_usable: 2 }``);\nthe flat form aligns with Prompt 3's \"peripherals counts\" wording and\nis sufficient for the MVP. See BLUEPRINT.md Appendix A \"Section 3.1\nillustrative-only divergences\" for the rationale.\n\nTODO(post-mvp): consider migrating to nested {count, max_clock_*,\nuser_usable} once the conflict checker (Prompt 5) grows\nperipheral-allocation rules \u2014 at that point the extra metadata\nearns its keep.",
       "properties": {
         "adc": {
           "anyOf": [
