@@ -453,8 +453,11 @@ Build the FastMCP server that exposes the bundle to AI agents. Package as
 5. Configuration: the server reads `HWLIB_DATA_DIR` env var (default to a
    bundled wheel data path). For local dev, point it at ../../dist/.
 
-6. Transport: stdio by default (for Claude Code). Add a --http flag that runs
-   Streamable HTTP on configurable port for hosted deployments.
+6. Transport: stdio by default (for Claude Code). Add --http to run
+   Streamable HTTP on a configurable --port and --host. In --http mode,
+   --host defaults to 0.0.0.0 (externally reachable, matches uvicorn /
+   gunicorn / flask conventions). When --host is set without --http,
+   emit a stderr warning and ignore.
 
 7. Tests under packages/hwlib-mcp/tests/:
    - test_server_smoke.py: instantiate FastMCP server in-process, call each
@@ -469,7 +472,7 @@ Commit. Stop after green tests.
 **Verify:**
 ```bash
 cd packages/hwlib-mcp
-uv pip install -e .
+uv pip install -e ".[dev]"
 HWLIB_DATA_DIR=../../dist hwlib-mcp --help
 pytest -q
 ```
@@ -504,17 +507,36 @@ Containerize the MCP server for ghcr.io distribution.
    transport http.
 
 5. Test:
-   - docker build -t hwlib-mcp:dev packages/hwlib-mcp/
-   - docker run --rm hwlib-mcp:dev --help
+   - `docker build` succeeds; `docker run --rm hwlib-mcp:dev` is a smoke
+     test — the bundle is baked into the image at build time, so default
+     run starts the server cleanly and exits on stdin EOF.
+   - The bundle-missing fast-fail path is exercised by mounting an empty
+     volume over /opt/hwlib/data, which masks the baked-in bundle and
+     triggers the structured error from Prompt 6 (exit=2).
 
 Stop after green local build. Commit.
 ```
 
 **Verify:**
 ```bash
-docker build -t hwlib-mcp:dev packages/hwlib-mcp/
-docker run --rm hwlib-mcp:dev --help
-docker compose up -d && curl -s localhost:8080/health && docker compose down
+# build + smoke (bundle baked in; banner + clean exit on EOF)
+bash packages/hwlib-mcp/scripts/build-image.sh
+docker run --rm hwlib-mcp:dev
+
+# compose /health — poll until healthy (no fixed sleep; uvicorn cold-start varies)
+docker compose up -d
+for i in $(seq 1 60); do
+    h=$(docker compose ps --format json hwlib-mcp 2>/dev/null \
+        | jq -r 'if type=="array" then .[0] else . end | .Health // empty')
+    [ "$h" = "healthy" ] && break
+    sleep 1
+done
+curl -s localhost:8080/health | jq .
+docker compose down
+
+# bundle-missing fast-fail (empty-volume mask; expect exit=2)
+mkdir -p /tmp/empty
+docker run --rm -v /tmp/empty:/opt/hwlib/data hwlib-mcp:dev || echo exit=$?
 ```
 
 ---
