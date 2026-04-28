@@ -8,14 +8,33 @@
 #     docker build -t hwlib-mcp:dev -f packages/hwlib-mcp/Dockerfile .
 #
 # Multi-stage:
-#   builder  — python:3.12-slim with uv; installs hwlib-mcp into a
+#   builder  — python:3.13-slim with uv; installs hwlib-mcp into a
 #              standalone /opt/site-packages directory and copies the
 #              built bundle into /opt/hwlib/data/.
-#   runtime  — gcr.io/distroless/python3-debian12:nonroot; copies the
+#   runtime  — gcr.io/distroless/python3-debian13:nonroot; copies the
 #              two prepared directories. No shell, no package manager,
 #              no apt — single-purpose runtime. Debugging happens at
 #              the host level (`docker logs`) or via the MCP protocol
 #              itself, NOT by `docker exec`.
+#
+# Image size baseline (~172 MB on Python 3.13 / distroless debian13):
+#   - distroless base                              ~75 MB  (fixed)
+#   - /opt/site-packages                           ~52 MB
+#       cryptography (joserfc/authlib via fastmcp)   13 MB
+#       pydantic_core                                 5 MB
+#       beartype, pygments, docutils, rich          ~12 MB
+#         (pulled transitively by fastmcp; not used
+#          at runtime in our handlers, but stripping
+#          post-install is brittle — they re-enter
+#          via fastmcp's import graph on any version
+#          bump)
+#       pydantic, pyyaml, fastmcp, others           ~22 MB
+#   - bundle (/opt/hwlib/data)                     ~0.1 MB
+# No __pycache__ / .pyc cleanup applies (uv pip install --target produces
+# no .pyc); no pip / setuptools / wheel / build leftovers in the runtime
+# tree. Replacing fastmcp with the lower-level `mcp` package would shrink
+# the image but moves banner/ergonomics work into our codebase. Out of
+# scope for MVP; revisit if image size becomes a deployment constraint.
 
 # ----- Stage 1: builder ------------------------------------------------
 # Builder ABI MUST equal runtime ABI for C-extension wheels (pydantic_core,
@@ -42,7 +61,7 @@ COPY packages/hwlib-mcp/src ./packages/hwlib-mcp/src
 # Install hwlib-mcp + its dependencies into a target directory we can
 # copy across stages. --target avoids the venv-shebang path-mismatch
 # headache (builder's /usr/local/bin/python ≠ distroless's
-# /usr/bin/python3.12); a flat site-packages directory works regardless.
+# /usr/bin/python3.13); a flat site-packages directory works regardless.
 RUN uv pip install --system --target /opt/site-packages ./packages/hwlib-mcp
 
 # The bundle is mandatory at image build time. The Dockerfile does NOT
