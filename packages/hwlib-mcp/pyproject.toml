@@ -7,7 +7,7 @@ name = "hwlib-mcp"
 version = "0.1.0"
 description = "MCP server exposing the hw-registry component bundle to AI coding agents."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 license = "MIT"
 authors = [
     { name = "Southern IoT Limited", email = "rnd@southerniot.net" },
@@ -18,7 +18,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Embedded Systems",
 ]
 

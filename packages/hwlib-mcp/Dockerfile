@@ -18,8 +18,11 @@
 #              itself, NOT by `docker exec`.
 
 # ----- Stage 1: builder ------------------------------------------------
+# Builder ABI MUST equal runtime ABI for C-extension wheels (pydantic_core,
+# watchfiles). Pinned to 3.13 to match Stage 2 — see Stage 2 comment for the
+# version-choice rationale.
 
-FROM python:3.12-slim AS builder
+FROM python:3.13-slim AS builder
 
 # Pin uv via official image so build is reproducible without a network
 # install step inside this stage.
@@ -52,8 +55,16 @@ COPY dist/library.sqlite  /opt/hwlib/data/library.sqlite
 COPY dist/index.json      /opt/hwlib/data/index.json
 
 # ----- Stage 2: runtime ------------------------------------------------
+# Distroless Debian 13 (Python 3.13) matches requires-python = ">=3.13".
+# dev=prod=3.13 is load-bearing for C-extension ABI compatibility.
+#
+# Why not 3.12: no free distroless ships Python 3.12 as of 2026-Q1.
+#   gcr.io/distroless/python3-debian12 → 3.11   (ABI mismatch with 3.13 builder)
+#   gcr.io/distroless/python3-debian13 → 3.13   ← chosen
+#   cgr.dev/chainguard/python:3.12     → paywalled (Chainguard Containers)
+#   cgr.dev/chainguard/python:latest   → 3.14
 
-FROM gcr.io/distroless/python3-debian12:nonroot
+FROM gcr.io/distroless/python3-debian13:nonroot
 
 LABEL org.opencontainers.image.source="https://github.com/rnd-southerniot/hw-registry"
 LABEL org.opencontainers.image.description="MCP server exposing the hw-registry hardware catalog to AI agents"

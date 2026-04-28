@@ -748,6 +748,7 @@ These decisions were made during prompt execution and refine — but do not cont
 - **`@semver` suffix on `inherits_from` and `contains[].ref`**. Stripped at filesystem-resolve time by `tools/validate.py refs-resolve`; semantically meaningful only to the bundle resolver (Prompt 4).
 - **`Datasheet.primary_url`**. Pydantic `HttpUrl` (strict). Air-gap distribution ships datasheets bundled, not via `file://` URLs.
 - **KiCad refs in MVP**. Placeholder strings (`hw-registry:<MPN>`) are fine until Prompt B post-MVP wires real `.kicad_sym` libraries. `model_3d` may be `null` in MVP YAMLs.
+- **Python version (2026-Q1 reset to 3.13).** Project bootstrapped at Python 3.12 with `requires-python = ">=3.12"` and `gcr.io/distroless/python3-debian12:nonroot` runtime. Prompt 7 runtime verification surfaced an ABI mismatch: `python:3.12-slim` builder produces `cpython-312` C-extension wheels, but distroless `python3-debian12` ships Python 3.11. No free distroless image ships Python 3.12 as of 2026-Q1 (`debian12` → 3.11; `debian13` → 3.13; Chainguard `:3.12` paywalled; Chainguard `:latest` → 3.14). Bumped the project to Python 3.13 across the board: `requires-python = ">=3.13"`, builder `python:3.13-slim`, runtime `gcr.io/distroless/python3-debian13:nonroot`. Pre-flight on a 3.13 throwaway venv: 72 tests pass, mypy clean, all C-extension deps resolve to cp313 wheels (pydantic_core, watchfiles) or stable-ABI (cryptography `abi3.so`). dev=prod parity preserved.
 
 ### Body overrides — Pydantic models intentionally diverge from blueprint examples
 
