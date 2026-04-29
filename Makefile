@@ -10,7 +10,7 @@
 #   make fmt         # ruff format + ruff check --fix
 #   make clean       # remove generated artifacts and caches
 
-.PHONY: help install schema validate bundle conflicts mcp-install mcp-run mcp-test image compose-up compose-down compose-logs docs-deps docs-build docs-serve test lint fmt clean
+.PHONY: help install schema validate bundle conflicts mcp-install mcp-run mcp-test image compose-up compose-down compose-logs docs-deps docs-build docs-serve wheels wheels-clean tag-release test lint fmt clean
 
 PYTHON ?= python
 UV ?= uv
@@ -69,6 +69,23 @@ docs-build: bundle docs-deps  ## Build the doc site to ./site (rebuilds bundle f
 
 docs-serve: bundle docs-deps  ## Live-preview the doc site at http://127.0.0.1:8000/
 	mkdocs serve
+
+# --- Release wheels ----------------------------------------------------
+
+wheels: bundle  ## Build hwlib-data + hwlib-mcp wheels and sdists
+	$(UV) pip install build
+	cd packages/hwlib-data && $(PYTHON) -m build
+	cd packages/hwlib-mcp && $(PYTHON) -m build
+
+wheels-clean:  ## Remove built wheels and staged hwlib-data bundle files
+	rm -rf packages/hwlib-data/dist packages/hwlib-mcp/dist
+	rm -f packages/hwlib-data/src/hwlib_data/data/library.* \
+	      packages/hwlib-data/src/hwlib_data/data/index.json
+
+tag-release:  ## Prompt for version, create annotated tag, remind to push
+	@read -p "Version (e.g. 0.1.0): " v && \
+	  git tag -a "v$$v" -m "v$$v" && \
+	  echo "Tagged v$$v locally. Push with: git push origin v$$v"
 
 test:  ## Run pytest
 	$(PYTHON) -m pytest -q
