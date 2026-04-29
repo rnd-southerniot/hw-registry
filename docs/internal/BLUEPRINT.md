@@ -782,3 +782,21 @@ Currently in use:
 - **`_extended: true`** on `AltFunction` dicts: marks entries that came from soft-fallback shorthand coercion (the parent's `AltFunction` table did not define this function name). The conflict checker downgrades `ALT_FUNCTION_UNSUPPORTED` from ERROR to INFO when it encounters one — see `tools/conflicts/rules.py::alt_function_unsupported`.
 
 Tools reading `library.sqlite` should treat any `_*` keys they don't recognize as inert metadata and pass them through unchanged. Tools reading `library.json` should never encounter `_*` keys — if they do, that's a build bug, not a data shape they need to handle.
+
+### Repository visibility — private → public, 2026-04-29
+
+The repo was created private on 2026-04-28 (Phase 0 of Prompt 9). On 2026-04-29 it was flipped to public to unblock GitHub Pages — the GitHub free tier doesn't include Pages for private repos (`POST /repos/{owner}/{repo}/pages` returns HTTP 422 with "Your current plan does not support GitHub Pages for this repository").
+
+The flip aligns the repository with intent that was already declared:
+
+- License footprint: MIT (code) + CC-BY-4.0 (data/docs). Both are the licensing of intended-public IP.
+- Mission per BLUEPRINT.md §1: a curated catalog for humans, AI agents, KiCad, and BOM tooling — three of those four consume the data via public surfaces (PyPI, GHCR, GitHub Pages).
+- Distribution path in Prompt 10: PyPI trusted publishing, GHCR image hosting, NPM data-wheel — all expect a public source.
+
+Going public is a one-way door for the existing commit history. Author email (`rnd@southerniot.net`) and commit messages are now world-readable, as are the `docs/internal/` reasoning artifacts. None of those contain anything sensitive — but the decision was made deliberately, not by default.
+
+Alternative paths considered:
+
+- **GitHub Pro / Team upgrade ($4/mo)**: keeps the repo private with no workflow changes. Rejected because it costs recurring money to enforce a privacy property the project doesn't actually need.
+- **Cloudflare Pages**: keeps the repo private, free deploy. Rejected because it adds a vendor + secret + workflow surface for no architectural benefit.
+- **Drop deploy-docs entirely**: keeps the repo private at the cost of the live doc site. Rejected because the doc site is a primary deliverable for the human-consumption surface.
