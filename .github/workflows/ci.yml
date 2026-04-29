@@ -127,9 +127,15 @@ jobs:
           python-version: "3.13"
           cache: pip
           cache-dependency-path: '**/pyproject.toml'
-      - name: Install root + hwlib-mcp (both editable; conftest imports tools.builder)
+      - name: Install root, build bundle, install hwlib-data + hwlib-mcp (editable)
+        # Install order matters: hwlib-data must be importable before hwlib-mcp
+        # because hwlib-mcp declares it as a runtime dep. Local install wins
+        # over PyPI resolution; without this, pip tries to fetch hwlib-data
+        # from PyPI and fails until v0.1.0 is published.
         run: |
           pip install -e ".[dev]"
+          python -m tools.builder --out dist/
+          pip install -e ./packages/hwlib-data
           pip install -e "./packages/hwlib-mcp[dev]"
       - name: Run hwlib-mcp pytest
         working-directory: packages/hwlib-mcp

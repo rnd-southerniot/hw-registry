@@ -52,23 +52,34 @@ ENV UV_LINK_MODE=copy \
 
 WORKDIR /build
 
-# Copy the package metadata + sources. README is referenced by pyproject.
-COPY packages/hwlib-mcp/pyproject.toml \
-     packages/hwlib-mcp/README.md \
-     ./packages/hwlib-mcp/
-COPY packages/hwlib-mcp/src ./packages/hwlib-mcp/src
+# Bundle artifacts staged at /build/dist/ — hwlib-data's build_hook.py
+# reads them from `parents[2] / "dist"` of its own location, which lands
+# at /build/dist/ given WORKDIR. This staging is for the BUILD stage; the
+# runtime-facing /opt/hwlib/data/ COPY happens further down.
+COPY dist/library.json    /build/dist/library.json
+COPY dist/library.sqlite  /build/dist/library.sqlite
+COPY dist/index.json      /build/dist/index.json
 
-# Install hwlib-mcp + its dependencies into a target directory we can
-# copy across stages. --target avoids the venv-shebang path-mismatch
-# headache (builder's /usr/local/bin/python ≠ distroless's
-# /usr/bin/python3.13); a flat site-packages directory works regardless.
-RUN uv pip install --system --target /opt/site-packages ./packages/hwlib-mcp
+# Both packages' sources, then a single uv pip install pass. Single-pass
+# is required: hwlib-mcp depends on hwlib-data, and uv's resolver only
+# sees both as local sources when they're passed in the same install
+# command. Two separate `uv pip install` calls would have the second one
+# try to fetch hwlib-data from PyPI (and fail until v0.1.0 publishes).
+COPY packages/hwlib-data ./packages/hwlib-data
+COPY packages/hwlib-mcp ./packages/hwlib-mcp
 
-# The bundle is mandatory at image build time. The Dockerfile does NOT
-# auto-build — `bash packages/hwlib-mcp/scripts/build-image.sh` does
-# that step before invoking `docker build`. Failing here on a missing
-# dist/ is the right error: tells the operator the build script wasn't
-# used.
+# --target avoids the venv-shebang path-mismatch headache (builder's
+# /usr/local/bin/python ≠ distroless's /usr/bin/python3.13); a flat
+# site-packages directory works regardless.
+RUN uv pip install --system --target /opt/site-packages \
+    ./packages/hwlib-data \
+    ./packages/hwlib-mcp
+
+# Operator-override path. The runtime image bakes the bundle here as well
+# as inside the hwlib-data wheel — docker-compose.yml and explicit
+# HWLIB_DATA_DIR=/opt/hwlib/data callers rely on this path. The bundle is
+# mandatory at image build time; failing here on missing dist/ is the
+# right error (tells the operator they didn't run build-image.sh).
 COPY dist/library.json    /opt/hwlib/data/library.json
 COPY dist/library.sqlite  /opt/hwlib/data/library.sqlite
 COPY dist/index.json      /opt/hwlib/data/index.json

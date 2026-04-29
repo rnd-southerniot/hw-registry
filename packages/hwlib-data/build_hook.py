@@ -29,22 +29,27 @@ class CustomBuildHook(BuildHookInterface):
         src_dist = repo_root / "dist"
         target_dir = package_dir / "src" / "hwlib_data" / "data"
 
-        # Idempotency: if the target is already populated (e.g. wheel build
-        # from an sdist that captured the staged files), preserve what's
-        # there rather than try to re-copy from a path that may not exist
-        # in the build environment.
-        if all((target_dir / f).is_file() for f in REQUIRED_FILES):
-            return
+        missing_source = [f for f in REQUIRED_FILES if not (src_dist / f).is_file()]
+        target_populated = all((target_dir / f).is_file() for f in REQUIRED_FILES)
 
-        missing = [f for f in REQUIRED_FILES if not (src_dist / f).is_file()]
-        if missing:
+        if missing_source:
+            # If source is missing but target is populated, this is the
+            # sdist->wheel round-trip case (sdist preserves data/, wheel
+            # built from sdist re-uses it). Preserve what's there.
+            # If source is missing and target is empty, halt with the
+            # actionable error.
+            if target_populated:
+                return
             raise RuntimeError(
                 f"hwlib-data build: bundle artifacts missing from {src_dist}: "
-                f"{missing}\n"
+                f"{missing_source}\n"
                 "Run `python -m tools.builder --out dist/` from the repo root "
                 "before building this wheel."
             )
 
+        # Source is present — always overwrite. Fresh data wins, even over
+        # a previously-populated target. Defensive against COPY-based Docker
+        # builds bringing in stale data files from a developer's local tree.
         target_dir.mkdir(parents=True, exist_ok=True)
         for f in REQUIRED_FILES:
             shutil.copy2(src_dist / f, target_dir / f)
