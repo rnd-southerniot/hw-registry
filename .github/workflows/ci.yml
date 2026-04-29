@@ -21,10 +21,21 @@ concurrency:
   # PR runs auto-cancel each other (rapid push wins). Main runs don't.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# Action version notes: see TODO(2026-Q3) above the first actions/checkout
+# step in the lint job below.
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+      # TODO(2026-Q3): bump actions/checkout, actions/setup-python to
+      # versions defaulting to Node 24 (current v4/v5 use Node 20,
+      # deprecated June 2026; runner-removal September 2026). Same
+      # bump applies to other Node-based actions in this workflow
+      # (cache, upload-artifact, download-artifact, configure-pages,
+      # deploy-pages, upload-pages-artifact). Tracked here, not in a
+      # separate doc, so a future maintainer auditing action versions
+      # finds it at the use-site.
       - uses: actions/checkout@v4
         with:
           lfs: true
