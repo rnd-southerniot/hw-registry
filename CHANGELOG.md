@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_(No changes yet. Conventional-commit history since v0.1.0 will populate this section automatically via `git-cliff` at the next release.)_
+### Fixed
+
+- Documentation references `ghcr.io/rnd-southerniot/hwlib-mcp:v0.1.0` corrected to `:0.1.0` (the actual published tag — `docker/metadata-action@v5`'s semver pattern strips the leading `v` per convention). The image itself was always published correctly at `:0.1.0`, `:0.1`, and `:latest`; only documentation was wrong.
+
+### Changed (infrastructure)
+
+- Dropped `mike` versioned-docs from the deploy pipeline. Pages source remains "Build from a workflow" (Actions-based via `ci.yml`'s `deploy-docs`). Versioned docs (`/v0.1.0/`, `/latest/` aliases) were never actually served because Pages can only have one source — the gh-pages branch mike pushed to went unread. Versioned docs become a deliberate post-1.0 decision when there's a real consumer pinning to a specific version's docs; pre-1.0, all consumers are on `latest` by definition.
 
 ## [0.1.0] - 2026-04-29
 

@@ -55,7 +55,7 @@ The standalone `library.sqlite` and `library.json` files are convenient for tool
 
 ## Air-gap caveats
 
-- **The Docker image isn't on the release.** Pulling `ghcr.io/rnd-southerniot/hwlib-mcp:latest` requires network access. For air-gap Docker deployments, `docker save ghcr.io/rnd-southerniot/hwlib-mcp:v0.1.0 -o hwlib-mcp-v0.1.0.tar` on a connected machine, transfer, then `docker load -i hwlib-mcp-v0.1.0.tar` on the air-gap.
+- **The Docker image isn't on the release.** Pulling `ghcr.io/rnd-southerniot/hwlib-mcp:latest` requires network access. For air-gap Docker deployments, `docker save ghcr.io/rnd-southerniot/hwlib-mcp:0.1.0 -o hwlib-mcp-0.1.0.tar` on a connected machine, transfer, then `docker load -i hwlib-mcp-0.1.0.tar` on the air-gap.
 - **PyPI dependencies aren't bundled.** `hwlib-mcp`'s transitive deps (FastMCP, anyio, etc.) need to be downloaded too. `pip download hwlib-mcp -d offline-deps/` on a connected machine pulls them all; transfer that directory and use `pip install --no-index --find-links offline-deps/`.
 - **SLSA attestations live with the GitHub Release.** Verifying provenance offline is possible (Sigstore bundles ship as separate files alongside the wheels) but requires the `sigstore` CLI installed offline as well.
 

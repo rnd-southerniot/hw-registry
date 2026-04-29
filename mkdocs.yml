@@ -86,7 +86,3 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/rnd-southerniot/hw-registry
-  # `mike` versioning prepared but not active — deployment lands in Prompt 9.
-  # version:
-  #   provider: mike
-  #   default: latest
