@@ -238,12 +238,26 @@ jobs:
         with:
           name: bundle
           path: dist/
-      - name: Generate changelog (latest tag, body only)
-        id: cliff
-        uses: orhun/git-cliff-action@v3
-        with:
-          config: cliff.toml
-          args: --latest --strip header
+      # Direct git-cliff binary install instead of orhun/git-cliff-action@v3.
+      # The action's Dockerfile uses a Debian Buster base whose apt repos
+      # were moved to archive.debian.org after 2024-06-30 EOL — `apt-get
+      # update` returns 404 on every CI run since. Pinning git-cliff to a
+      # specific version and installing from the upstream release tarball
+      # makes our dependency surface explicit (one curl, one binary).
+      # If a future git-cliff release breaks our cliff.toml, we choose
+      # when to bump.
+      - name: Install git-cliff
+        run: |
+          GIT_CLIFF_VERSION=2.6.1
+          BASE="https://github.com/orhun/git-cliff/releases/download"
+          ARCHIVE="git-cliff-${GIT_CLIFF_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          curl -sSL "${BASE}/v${GIT_CLIFF_VERSION}/${ARCHIVE}" -o /tmp/gc.tar.gz
+          tar -xzf /tmp/gc.tar.gz -C /tmp
+          sudo mv /tmp/git-cliff-*/git-cliff /usr/local/bin/git-cliff
+          git-cliff --version
+      - name: Generate release notes (latest tag, body only)
+        run: |
+          git-cliff --config cliff.toml --latest --strip header > /tmp/release-notes.md
       - name: Compute SHA256SUMS
         run: |
           (
@@ -266,9 +280,10 @@ jobs:
             dist/library.sqlite
             dist/index.json
             dist/SHA256SUMS
-          body: ${{ steps.cliff.outputs.content }}
+          body_path: /tmp/release-notes.md
           generate_release_notes: false
           draft: false
+          make_latest: true
           # Any tag with `-` is a prerelease per semver (-rc, -beta, -alpha, etc.).
           # Stable releases are bare `vX.Y.Z` with no hyphen.
           prerelease: ${{ contains(github.ref_name, '-') }}
