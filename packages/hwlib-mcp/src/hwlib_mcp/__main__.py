@@ -4,30 +4,11 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
 import sys
-from pathlib import Path
 from typing import Any
 
 from . import data
 from .server import build_server
-
-
-def _resolve_data_dir() -> Path:
-    """Read HWLIB_DATA_DIR or fall back to a dev-friendly default.
-
-    Default looks up to the repo root from this file (works for editable
-    installs). Production wheels will set HWLIB_DATA_DIR explicitly via
-    the hwlib-data package's data_path() helper (Prompt 10).
-    """
-    env = os.environ.get("HWLIB_DATA_DIR")
-    if env:
-        return Path(env).expanduser().resolve()
-    # Editable-install fallback: packages/hwlib-mcp/src/hwlib_mcp/__main__.py
-    # → repo_root = parents[4]
-    here = Path(__file__).resolve()
-    repo_root = here.parents[4]
-    return repo_root / "dist"
 
 
 def build_run_kwargs(args: argparse.Namespace) -> dict[str, Any]:
@@ -88,11 +69,17 @@ def main() -> None:
         stream=sys.stderr,
     )
 
-    data_dir = _resolve_data_dir()
+    # Resolve the data directory: HWLIB_DATA_DIR env var, then hwlib-data
+    # wheel, then fail-fast (BundleNotFound). Same exit=2 contract as before.
+    try:
+        data_dir = data.resolve_data_dir()
+    except data.BundleNotFound as e:
+        sys.stderr.write(f"hwlib-mcp: {e}\n")
+        sys.exit(2)
 
-    # Fail fast and operator-friendly on missing bundle. The loader's own
-    # check fires per-tool-call too, but a clean startup error is what
-    # an operator sees when they wire the server up wrong.
+    # The loader's own check fires per-tool-call too, but a clean startup
+    # error is what an operator sees when they wire the server up wrong
+    # (data_dir resolved, but library.sqlite isn't actually there).
     if not data.bundle_present(data_dir):
         sys.stderr.write(
             f"hwlib-mcp: library.sqlite not found at {data_dir}.\n"

@@ -33,16 +33,15 @@ make compose-down
 
 ## Pulling from GHCR
 
-(Available after Prompt 10's release-wiring lands.)
-
 ```bash
 docker pull ghcr.io/rnd-southerniot/hwlib-mcp:latest
 docker run -d --name hwlib \
-    -e HWLIB_DATA_DIR=/opt/hwlib/data \
     -p 8080:8080 \
     ghcr.io/rnd-southerniot/hwlib-mcp:latest \
     --http --port 8080
 ```
+
+`HWLIB_DATA_DIR` is unset — the image bakes in a copy of the bundle at `/opt/hwlib/data` matching the image tag. Override only when you want a *different* bundle:
 
 The image bakes in a frozen copy of the bundle that matches the image
 tag (a v0.1.0 image carries the v0.1.0 bundle). Override at runtime by
@@ -60,10 +59,10 @@ docker run -d \
 
 Multi-stage build:
 
-| Stage   | Base image                           | Purpose                                   |
-|---------|--------------------------------------|-------------------------------------------|
-| builder | `python:3.12-slim` + `uv`            | Install package + deps into `/opt/site-packages`; copy `dist/` into `/opt/hwlib/data/` |
-| runtime | `gcr.io/distroless/python3-debian12:nonroot` | Copies the two prepared dirs; runs as `nonroot` (uid 65532); no shell, no apt |
+| Stage   | Base image                                   | Purpose                                                                              |
+|---------|----------------------------------------------|--------------------------------------------------------------------------------------|
+| builder | `python:3.13-slim` + `uv`                    | Install package + deps into `/opt/site-packages`; copy `dist/` into `/opt/hwlib/data/` |
+| runtime | `gcr.io/distroless/python3-debian13:nonroot` | Copies the two prepared dirs; runs as `nonroot` (uid 65532); no shell, no apt        |
 
 The runtime stage is **distroless** by design. There is no shell, no
 package manager, no `bash`, no `sh`, no `apt`. `docker exec -it

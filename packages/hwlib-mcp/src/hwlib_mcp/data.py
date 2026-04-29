@@ -26,9 +26,52 @@ The bundle schema (see ``tools/builder/build.py::emit_library_sqlite``):
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 from pathlib import Path
 from typing import Any
+
+
+class BundleNotFound(Exception):
+    """Raised when the data bundle location cannot be resolved at all.
+
+    Distinct from the case where a *data_dir* resolves but
+    ``library.sqlite`` isn't there — that's the caller's responsibility
+    via :func:`bundle_present`. This exception specifically means
+    ``HWLIB_DATA_DIR`` is unset AND ``hwlib_data`` isn't importable.
+    """
+
+
+def resolve_data_dir() -> Path:
+    """Resolve the data directory using the standard fallback chain.
+
+    Resolution order:
+
+    1. ``HWLIB_DATA_DIR`` env var (operator override; takes precedence).
+    2. ``hwlib_data.data_path()`` — the bundled data wheel, available
+       after ``pip install hwlib-data``.
+    3. :class:`BundleNotFound` otherwise.
+
+    The returned path may or may not contain a valid bundle — the caller
+    should still gate on :func:`bundle_present` before treating it as
+    authoritative.
+    """
+    env = os.environ.get("HWLIB_DATA_DIR")
+    if env:
+        return Path(env).expanduser().resolve()
+
+    try:
+        import hwlib_data  # noqa: PLC0415
+    except ImportError:
+        pass
+    else:
+        return hwlib_data.data_path()
+
+    raise BundleNotFound(
+        "Cannot resolve hw-registry bundle location.\n"
+        "  - Set HWLIB_DATA_DIR to a directory containing library.sqlite, or\n"
+        "  - Install the hwlib-data wheel (`pip install hwlib-data`)."
+    )
 
 
 def bundle_present(data_dir: Path) -> bool:

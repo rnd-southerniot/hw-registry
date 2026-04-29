@@ -55,17 +55,52 @@ Each component YAML must:
 See [`CLAUDE.md`](CLAUDE.md) for the full execution contract and
 [`docs/contributing.md`](docs/contributing.md) for the PR checklist.
 
-## Use it from an agent
+## Quickstart for agents
 
 ```bash
-claude mcp add hwlib uvx hwlib-mcp                         # PyPI / stdio
-# or
-docker run -d -p 8080:8080 ghcr.io/rnd-southerniot/hwlib-mcp:latest \
-  --http --port 8080
-claude mcp add hwlib --transport http http://localhost:8080
+# Local stdio (recommended for personal dev):
+pip install hwlib-mcp
+claude mcp add hwlib --stdio -- hwlib-mcp
+
+# Hosted / team (Docker, --http):
+docker run -d -p 8080:8080 ghcr.io/rnd-southerniot/hwlib-mcp:latest --http
+claude mcp add hwlib --transport http http://localhost:8080/mcp
 ```
 
-Per-agent wiring snippets: [`docs/agents/`](docs/agents/).
+`pip install hwlib-mcp` pulls `hwlib-data` transitively, so the catalog is self-contained — no `HWLIB_DATA_DIR` env var needed for default consumption.
+
+Per-agent wiring snippets: [`docs/agents/`](docs/agents/) (Claude Code, Cursor, Cline, Docker).
+
+## Quickstart for tooling
+
+For KiCad / BOM exporters / CI jobs that consume the catalog directly without going through the MCP layer:
+
+```bash
+pip install hwlib-data
+```
+
+```python
+import sqlite3
+from hwlib_data import data_path
+
+conn = sqlite3.connect(data_path() / "library.sqlite")
+rows = conn.execute(
+    "SELECT id, summary FROM components WHERE kind = 'sensor'"
+).fetchall()
+```
+
+The wheel ships a deterministic snapshot of the catalog — same content as `dist/library.{json,sqlite,index.json}` after a fresh `python -m tools.builder`. Update by `pip install --upgrade hwlib-data`.
+
+Air-gap / offline install: see [`INSTALL-OFFLINE.md`](INSTALL-OFFLINE.md).
+
+## Releases
+
+Tagged releases publish to PyPI (`hwlib-mcp`, `hwlib-data`), GHCR (`ghcr.io/rnd-southerniot/hwlib-mcp`), the versioned doc site, and GitHub Releases (with SHA256SUMS and SLSA attestations).
+
+- [Latest release](https://github.com/rnd-southerniot/hw-registry/releases/latest)
+- [All releases](https://github.com/rnd-southerniot/hw-registry/releases)
+- [Versioned doc site](https://rnd-southerniot.github.io/hw-registry/) — `latest` alias plus per-version paths
+- [Changelog](CHANGELOG.md)
 
 ## Licensing
 
