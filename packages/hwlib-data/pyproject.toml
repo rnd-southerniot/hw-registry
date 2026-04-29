@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hwlib-data"
+version = "0.1.0"
+description = "Bundled component data for hw-registry. Read-only SQLite + JSON catalog of curated embedded hardware (boards, modules, sensors, drivers)."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "CC-BY-4.0"
+authors = [
+    { name = "Southern IoT Limited", email = "rnd@southerniot.net" },
+]
+keywords = ["hardware", "embedded", "registry", "catalog", "data"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Embedded Systems",
+]
+
+[project.urls]
+Homepage = "https://rnd-southerniot.github.io/hw-registry/"
+Repository = "https://github.com/rnd-southerniot/hw-registry"
+Issues = "https://github.com/rnd-southerniot/hw-registry/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+]
+
+# --- Build configuration -----------------------------------------------------
+
+[tool.hatch.build.hooks.custom]
+# build_hook.py copies dist/library.{json,sqlite,index.json} from the repo
+# root into src/hwlib_data/data/ before the wheel is packaged. Same fail-
+# fast contract as hwlib-mcp: missing bundle -> clear RuntimeError pointing
+# at `python -m tools.builder --out dist/`.
+path = "build_hook.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hwlib_data"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/",
+    "build_hook.py",
+    "pyproject.toml",
+    "README.md",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"

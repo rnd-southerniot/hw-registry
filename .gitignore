@@ -51,3 +51,7 @@ secrets/
 # --- Build outputs we never commit ---------------------------------------
 schemas/.cache/
 /docs/components/
+
+# hwlib-data wheel: bundle staged at build time by build_hook.py
+/packages/hwlib-data/src/hwlib_data/data/*
+!/packages/hwlib-data/src/hwlib_data/data/.gitkeep
