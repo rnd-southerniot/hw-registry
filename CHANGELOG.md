@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-The first labeled release will be `v0.1.0`. Pre-release development cycle covered Prompts 0–10 from the bootstrap pack and is described below for context.
+_(No changes yet. Conventional-commit history since v0.1.0 will populate this section automatically via `git-cliff` at the next release.)_
+
+## [0.1.0] - 2026-04-29
+
+The first labeled release. Pre-release development cycle covered Prompts 0–10 from the bootstrap pack.
 
 ### Added — bootstrap milestones
 
@@ -35,4 +39,5 @@ The first labeled release will be `v0.1.0`. Pre-release development cycle covere
 - All published artifacts (wheels + Docker images) carry SLSA build-provenance attestations via Sigstore.
 - Branch protection enforces 1 CODEOWNERS approval + 9 required status checks before merge to `main`.
 
-[Unreleased]: https://github.com/rnd-southerniot/hw-registry/compare/main...HEAD
+[Unreleased]: https://github.com/rnd-southerniot/hw-registry/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/rnd-southerniot/hw-registry/releases/tag/v0.1.0
