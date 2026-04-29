@@ -24,9 +24,13 @@ classifiers = [
 
 dependencies = [
     "fastmcp>=2.0",
-    # The bundle is read directly from SQLite at HWLIB_DATA_DIR. We rely
-    # on stdlib's sqlite3 (no extra dep). hwlib-data wheel arrives in
-    # Prompt 10 with the canonical bundle bundled inside it.
+    # hwlib-data ships the deterministic bundle as a data wheel. Pinned
+    # to ^0.1 — bundle-schema major bumps require coordinated mcp release
+    # (the SQLite query layer in data.py assumes a specific schema). The
+    # MCP server first honors HWLIB_DATA_DIR, then falls back to
+    # hwlib_data.data_path(); this dep makes the fallback always available
+    # in production wheel installs.
+    "hwlib-data>=0.1.0,<0.2.0",
 ]
 
 [project.optional-dependencies]
