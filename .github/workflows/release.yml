@@ -17,7 +17,6 @@ permissions:
   packages: write       # GHCR push
   id-token: write       # trusted publishing OIDC + SLSA attestations
   attestations: write   # SLSA build provenance
-  pages: write          # mike push (belt-and-suspenders; mike uses contents: write directly)
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -176,40 +175,6 @@ jobs:
           sbom: true
 
   # -----------------------------------------------------------------------
-  # Versioned doc deploy. mike maintains the version dropdown on
-  # gh-pages branch — `latest` alias always points at the newest tag,
-  # plus a per-version path is preserved for deep links.
-  # On first run, mike creates the gh-pages branch (no manual setup
-  # needed beyond the Pages config we wired in Prompt 9 step 5).
-  # -----------------------------------------------------------------------
-  deploy-versioned-docs:
-    runs-on: ubuntu-latest
-    needs: build-bundle
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-          fetch-depth: 0   # mike needs full history for branch operations
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-          cache: pip
-          cache-dependency-path: '**/pyproject.toml'
-      - uses: actions/download-artifact@v4
-        with:
-          name: bundle
-          path: dist/
-      - run: pip install -r docs/requirements.txt
-      - name: Configure git for mike push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      - name: Deploy ${{ github.ref_name }} + update latest alias
-        run: |
-          mike deploy --push --update-aliases ${{ github.ref_name }} latest
-          mike set-default --push latest
-
-  # -----------------------------------------------------------------------
   # Final job: gather artifacts, generate changelog, attach to GitHub
   # Release. Depends on the publish jobs so a partial failure (PyPI up
   # but GHCR down, etc.) doesn't produce a half-baked Release page.
@@ -220,7 +185,6 @@ jobs:
       - publish-pypi-data
       - publish-pypi-mcp
       - publish-ghcr
-      - deploy-versioned-docs
     steps:
       - uses: actions/checkout@v4
         with:
